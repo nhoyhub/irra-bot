@@ -2,430 +2,952 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modern Admin Panel - Order Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         
-        * { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* --- DYNAMIC THEME VARIABLES --- */
+        :root {
+            /* Default Purple Theme */
+            --primary: #8b5cf6;       /* Main Purple */
+            --secondary: #ec4899;     /* Pink Accent */
+            --primary-light: #ddd6fe; /* Light Purple for backgrounds */
+        }
+        
+        /* Apply Dynamic Colors */
+        .accent-text { color: var(--primary) !important; }
+        .accent-bg { background-color: var(--primary) !important; }
+        .accent-border { border-color: var(--primary) !important; }
+        
+        .accent-gradient {
+            background: linear-gradient(90deg, var(--primary), var(--secondary)) !important;
+        }
+        
+        .accent-bg-soft {
+            background-color: var(--primary-light) !important;
+            color: var(--primary) !important;
+        }
+
+        .btn-glow::before {
+            background: linear-gradient(45deg, var(--primary), var(--secondary)) !important;
+        }
         
         /* Glassmorphism effect */
         .glass {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .glass-dark {
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        /* Custom Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        /* Custom Scrollbar for Table */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
         
-        /* Animations */
-        .hover-lift { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); }
+        /* Smooth hover lift */
+        .hover-lift {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         
-        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
-        .float-animate { animation: float 3s ease-in-out infinite; }
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
         
-        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.4); } 50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.8); } }
-        .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+        /* Card shine effect */
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
         
-        /* Modal Overlay */
-        .modal-overlay-bg { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); }
+        .shine-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
         
-        /* Mobile Sidebar Transition */
-        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        .shine-effect:hover::before {
+            left: 100%;
+        }
+        
+        /* Floating animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .float-animate {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Pulse glow */
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(102, 126, 234, 0.8);
+            }
+        }
+        
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+        
+        /* Fade in animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(20px); }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        /* Modal animations */
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .modal-slide-in {
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        /* Button glow effect */
+        .btn-glow {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-glow:hover::before {
+            opacity: 0.2;
+        }
+
+        /* MODAL OVERLAY */
+        .modal-overlay-bg {
+            background-color: rgba(15, 23, 42, 0.85); /* Slate-900 with high opacity */
+        }
+
+        /* Mobile Sidebar state management */
+        .sidebar-visible {
+            transform: translateX(0) !important;
+        }
+        
+        /* Mobile Backdrop for Sidebar */
+        .sidebar-backdrop {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Color Picker Style */
+        .color-picker-wrapper {
+            position: relative;
+            overflow: hidden;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+        }
+        .color-picker-wrapper input[type="color"] {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 h-screen flex overflow-hidden">
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 min-h-screen">
     
-    <!-- Mobile Overlay -->
-    <div id="mobileOverlay" onclick="toggleSidebar()" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm hidden lg:hidden opacity-0 transition-opacity duration-300"></div>
+    <!-- Mobile Menu Backdrop -->
+    <div id="mobileBackdrop" class="fixed inset-0 z-30 bg-slate-900/50 sidebar-backdrop lg:hidden glass-effect"></div>
 
-    <!-- SIDEBAR -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 glass-dark shadow-2xl transform -translate-x-full lg:translate-x-0 lg:static sidebar-transition flex flex-col">
+    <!-- Mobile Menu Toggle -->
+    <button id="mobileMenuBtn" class="fixed top-4 left-4 z-50 lg:hidden p-3 glass rounded-xl shadow-lg hover-lift ripple">
+        <svg class="w-6 h-6 accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
+
+    <div class="flex min-h-screen p-4 gap-4 relative">
         
-        <!-- Profile Section -->
-        <div class="p-8 text-center border-b border-white/10">
-            <div class="relative inline-block float-animate">
-                <div class="w-20 h-20 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-1 pulse-glow">
-                    <img class="w-full h-full rounded-full object-cover border-4 border-slate-800" 
-                         src="https://i.pinimg.com/736x/f6/cd/2b/f6cd2b2b5a6c35c458138899b8fc6035.jpg" alt="Profile">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed lg:relative inset-y-0 left-0 z-40 w-72 glass-dark rounded-2xl shadow-2xl p-6 transform -translate-x-[110%] lg:translate-x-0 transition-transform duration-300 h-[calc(100vh-2rem)] lg:h-auto overflow-y-auto">
+            
+            <!-- Profile Section -->
+            <div class="text-center mb-8 fade-in-up">
+                <div class="relative inline-block float-animate">
+                    <div class="w-20 h-20 rounded-full accent-gradient p-1 pulse-glow">
+                        <img class="w-full h-full rounded-full object-cover border-4 border-slate-800" 
+                             src="https://i.pinimg.com/originals/d0/83/66/d08366e9da7ead62a4e626adf96f664f.gif" alt="Profile">
+                    </div>
+                    <div class="absolute bottom-0 right-0 w-5 h-5 bg-green-400 rounded-full border-3 border-slate-800 badge-pulse"></div>
                 </div>
-                <div class="absolute bottom-0 right-0 w-5 h-5 bg-green-400 rounded-full border-4 border-slate-800"></div>
+                <h3 class="text-xl font-bold text-white mt-4 mb-1">Irra</h3>
+                <p class="text-sm text-slate-400">Owner@kh.com</p>
+                <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full">
+                    <span class="w-2 h-2 bg-green-400 rounded-full badge-pulse"></span>
+                    <span class="text-xs text-green-400 font-medium">Online</span>
+                </div>
             </div>
-            <h3 class="text-xl font-bold text-white mt-4">Admin Panel</h3>
-            <p class="text-sm text-slate-400">Order Manager</p>
-        </div>
 
-        <!-- Navigation -->
-        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-            <a href="#" class="flex items-center gap-3 px-4 py-3 text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/30">
-                <i class="fas fa-shopping-bag"></i>
-                <span class="font-medium">Orders</span>
-                <span id="orderCountBadge" class="ml-auto bg-white/20 px-2 py-0.5 rounded-full text-xs">0</span>
-            </a>
-            
-            <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all">
-                <i class="fas fa-users"></i>
-                <span class="font-medium">Customers</span>
-            </a>
-            
-            <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all">
-                <i class="fas fa-chart-pie"></i>
-                <span class="font-medium">Analytics</span>
-            </a>
-        </nav>
-
-        <!-- Logout -->
-        <div class="p-4 border-t border-white/10">
-            <button class="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="font-medium">Logout</span>
-            </button>
-        </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-        
-        <!-- Top Bar -->
-        <header class="glass h-20 px-6 flex items-center justify-between z-30 shrink-0">
-            <div class="flex items-center gap-4">
-                <!-- Mobile Menu Btn -->
-                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
+            <!-- Navigation -->
+            <nav class="space-y-2 mb-8">
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300 hover-lift delay-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span class="font-medium">Dashboard</span>
+                </a>
                 
-                <h2 class="text-xl font-bold text-slate-800 hidden sm:block">Dashboard</h2>
-            </div>
-
-            <div class="flex items-center gap-3">
-                <div class="relative hidden sm:block">
-                    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search..." 
-                        class="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none w-64">
-                    <i class="fas fa-search absolute left-3 top-2.5 text-slate-400"></i>
-                </div>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-white accent-gradient rounded-xl shadow-lg shine-effect delay-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <span class="font-medium">Orders</span>
+                    <span id="orderCountBadge" class="ml-auto bg-white/20 px-2 py-1 rounded-full text-xs">...</span>
+                </a>
                 
-                <button onclick="fetchOrders()" class="p-2.5 bg-purple-50 text-purple-600 rounded-xl hover:bg-purple-100 transition-transform active:scale-95">
-                    <i class="fas fa-sync-alt"></i>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300 hover-lift delay-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <span class="font-medium">Customers</span>
+                </a>
+
+                <!-- THEME SETTINGS -->
+                <div class="mt-4 pt-4 border-t border-slate-700">
+                    <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Custom Theme 🎨</p>
+                    <div class="flex items-center gap-4 px-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs text-slate-400">Primary</span>
+                            <div class="color-picker-wrapper">
+                                <input type="color" id="primaryColorPicker" value="#8b5cf6" title="Change Primary Color">
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs text-slate-400">Secondary</span>
+                            <div class="color-picker-wrapper">
+                                <input type="color" id="secondaryColorPicker" value="#ec4899" title="Change Secondary Color">
+                            </div>
+                        </div>
+                        <button onclick="resetTheme()" class="text-xs text-white underline ml-auto">Reset</button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Logout Button -->
+            <div class="mt-auto pt-6 border-t border-slate-700">
+                <button class="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-300 hover-lift ripple">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span class="font-medium">Logout</span>
                 </button>
             </div>
-        </header>
+        </aside>
 
-        <!-- Scrollable Area -->
-        <div class="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col gap-4 w-full overflow-hidden">
             
-            <!-- Mobile Search (Visible only on small screens) -->
-            <div class="mb-6 sm:hidden">
-                 <input type="text" id="searchInputMobile" onkeyup="filterTableMobile()" placeholder="Search UDID or User..." 
-                        class="w-full pl-4 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm focus:ring-2 focus:ring-purple-500 outline-none">
+            <!-- Top Bar -->
+            <header class="glass rounded-2xl shadow-lg p-4 hover-lift fade-in-up flex items-center justify-between">
+                <div class="flex-1 lg:ml-0 ml-12">
+                     <h1 class="text-xl font-bold text-slate-700 hidden lg:block">Welcome Back, Irra</h1>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <button class="relative p-3 text-slate-600 hover:text-white accent-text hover:bg-slate-800 rounded-xl transition-all duration-300 hover-lift ripple">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.158 6 8.358 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full badge-pulse"></span>
+                    </button>
+                    
+                    <div class="w-10 h-10 rounded-xl overflow-hidden hover-lift cursor-pointer border-2 accent-border">
+                        <img src="https://i.pinimg.com/1200x/d7/51/67/d75167a9d61835f3a316f6bcd88a8f26.jpg" alt="Admin" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Stats Cards (AUTO UPDATING) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                
+                <!-- Total Orders Card -->
+                <div class="glass rounded-2xl shadow-lg p-6 hover-lift shine-effect fade-in-up delay-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-slate-600">Total Orders</h3>
+                        <div class="p-2 accent-bg-soft rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        </div>
+                    </div>
+                    <p id="statTotalOrders" class="text-3xl font-bold text-slate-800">0</p>
+                    <p id="statMonthlyGrowth" class="text-xs text-slate-500 mt-2 flex items-center gap-1">Calculating...</p>
+                </div>
+
+                <!-- Completed Card -->
+                <div class="glass rounded-2xl shadow-lg p-6 hover-lift shine-effect fade-in-up delay-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-slate-600">Completed</h3>
+                        <div class="p-2 bg-green-100 rounded-lg">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                    <p id="statCompleted" class="text-3xl font-bold text-slate-800">0</p>
+                    <p id="statCompletionRate" class="text-xs text-green-500 mt-2">0% completion rate</p>
+                </div>
+
+                <!-- Pending Card -->
+                <div class="glass rounded-2xl shadow-lg p-6 hover-lift shine-effect fade-in-up delay-300">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-slate-600">Pending</h3>
+                        <div class="p-2 bg-amber-100 rounded-lg">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p id="statPending" class="text-3xl font-bold text-slate-800">0</p>
+                    <p class="text-xs text-amber-500 mt-2">Requires attention</p>
+                </div>
+
+                <!-- Revenue Card -->
+                <div class="glass rounded-2xl shadow-lg p-6 hover-lift shine-effect fade-in-up delay-400">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-slate-600">Revenue</h3>
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p id="statRevenue" class="text-3xl font-bold text-slate-800">$0.00</p>
+                    <p id="statRevenueGrowth" class="text-xs text-slate-500 mt-2 flex items-center gap-1">Calculating...</p>
+                </div>
             </div>
 
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-                <!-- Total -->
-                <div class="glass p-6 rounded-2xl shadow-sm hover-lift">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Orders</p>
-                            <h3 id="statTotal" class="text-3xl font-bold text-slate-800 mt-2">0</h3>
+            <!-- Orders Table Section -->
+            <div class="glass rounded-2xl shadow-lg overflow-hidden flex-1 flex flex-col fade-in-up">
+                <div class="p-6 border-b border-slate-200">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="w-full lg:w-auto">
+                            <h2 class="text-2xl font-bold text-slate-800">Order Management</h2>
+                            <p class="text-sm text-slate-500 mt-1 mb-3">Track and manage all customer orders</p>
+                            <div class="relative w-full lg:w-96">
+                                <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                <input type="search" id="searchBar" placeholder="Search orders, users, UDIDs..." class="w-full pl-12 pr-4 py-3 bg-slate-50 border-0 rounded-xl text-sm focus:ring-2 accent-border focus:bg-white transition-all duration-300" onkeyup="filterTable()">
+                            </div>
                         </div>
-                        <div class="p-3 bg-blue-100 text-blue-600 rounded-xl">
-                            <i class="fas fa-clipboard-list text-xl"></i>
+                        
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="fetchOrders()" class="w-full lg:w-auto px-6 py-2 accent-gradient text-white font-medium rounded-xl hover:shadow-lg transition-all duration-300 hover-lift ripple btn-glow flex items-center justify-center gap-2">
+                                <svg id="refreshIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                <span id="refreshText">Refresh</span>
+                            </button>
                         </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-4 overflow-x-auto pb-2 custom-scrollbar">
+                        <button onclick="filterByStatus('all')" class="px-4 py-2 accent-gradient text-white font-medium rounded-lg text-sm whitespace-nowrap shine-effect" id="btn-all">All Orders</button>
+                        <button onclick="filterByStatus('completed')" class="px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium rounded-lg text-sm whitespace-nowrap transition-all duration-300" id="btn-completed">Completed</button>
+                        <button onclick="filterByStatus('pending')" class="px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium rounded-lg text-sm whitespace-nowrap transition-all duration-300" id="btn-pending">Pending</button>
+                        <button onclick="filterByStatus('cancelled')" class="px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium rounded-lg text-sm whitespace-nowrap transition-all duration-300" id="btn-cancelled">Cancelled</button>
                     </div>
                 </div>
 
-                <!-- Completed -->
-                <div class="glass p-6 rounded-2xl shadow-sm hover-lift">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Completed</p>
-                            <h3 id="statCompleted" class="text-3xl font-bold text-slate-800 mt-2">0</h3>
+                <!-- Loading State -->
+                <div id="loadingSpinner" class="flex justify-center items-center p-12 hidden">
+                    <div class="relative">
+                        <div class="w-16 h-16 border-4 border-slate-200 accent-border border-t-transparent rounded-full animate-spin"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-8 h-8 accent-bg rounded-full pulse-glow"></div>
                         </div>
-                        <div class="p-3 bg-green-100 text-green-600 rounded-xl">
-                            <i class="fas fa-check-circle text-xl"></i>
-                        </div>
+                    </div>
+                    <p class="ml-4 text-slate-600 font-medium">Loading orders...</p>
+                </div>
+
+                <!-- Table Content -->
+                <div class="flex-1 overflow-hidden flex flex-col">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full min-w-[1000px]">
+                            <thead class="bg-gradient-to-r from-slate-50 to-slate-100 sticky top-0 z-10">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">UDID</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Price</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Link Status</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderTableBody" class="divide-y divide-slate-200">
+                                <!-- Data injected via JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- Pending -->
-                <div class="glass p-6 rounded-2xl shadow-sm hover-lift">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pending</p>
-                            <h3 id="statPending" class="text-3xl font-bold text-amber-600 mt-2">0</h3>
-                        </div>
-                        <div class="p-3 bg-amber-100 text-amber-600 rounded-xl animate-pulse">
-                            <i class="fas fa-clock text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Revenue -->
-                <div class="glass p-6 rounded-2xl shadow-sm hover-lift">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Revenue</p>
-                            <h3 id="statRevenue" class="text-3xl font-bold text-purple-600 mt-2">$0</h3>
-                        </div>
-                        <div class="p-3 bg-purple-100 text-purple-600 rounded-xl">
-                            <i class="fas fa-dollar-sign text-xl"></i>
+                <!-- Pagination -->
+                <div class="p-6 border-t border-slate-200 bg-slate-50">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <p id="paginationInfo" class="text-sm text-slate-600 text-center md:text-left">
+                            Showing <span id="startRange" class="font-semibold">0</span> to <span id="endRange" class="font-semibold">0</span> of <span id="totalItems" class="font-semibold">0</span> orders
+                        </p>
+                        <div class="flex gap-2">
+                            <button id="backButton" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-white transition-all duration-300 hover-lift ripple disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                            <span id="pageNumberDisplay" class="px-4 py-2 accent-bg-soft font-medium rounded-lg text-sm flex items-center">
+                                Page 1
+                            </span>
+                            <button id="nextButton" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-white transition-all duration-300 hover-lift ripple">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+        </main>
+    </div>
 
-            <!-- Table Section -->
-            <div class="glass rounded-2xl shadow-lg overflow-hidden flex flex-col">
-                <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <h3 class="text-lg font-bold text-slate-800">Recent Orders</h3>
-                    <div class="flex gap-2 w-full sm:w-auto overflow-x-auto">
-                        <button onclick="filterStatus('all')" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-medium shadow-lg shadow-slate-300">All</button>
-                        <button onclick="filterStatus('pending')" class="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg text-xs font-medium">Pending</button>
-                        <button onclick="filterStatus('completed')" class="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-xs font-medium">Completed</button>
-                    </div>
+    <!-- MODALS -->
+    <!-- Link Input Modal -->
+    <div id="linkModal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-overlay-bg">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-xl mx-4 modal-slide-in">
+            <h3 id="modalTitle" class="text-2xl font-bold text-slate-800 mb-6 border-b pb-3">Input Link</h3>
+            <div class="space-y-6">
+                <div>
+                    <label for="modalLinkInput" class="block text-sm font-semibold text-slate-700 mb-2">1. Main Download Link</label>
+                    <input type="url" id="modalLinkInput" placeholder="https://cdn.server.com/main_file.zip"
+                           class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 accent-border focus:border-purple-500 transition-all duration-300">
                 </div>
-
-                <div id="loader" class="hidden p-12 text-center text-slate-400">
-                    <i class="fas fa-circle-notch fa-spin text-3xl mb-2"></i>
-                    <p>Loading Data...</p>
+                <div>
+                    <label for="modalLinkInput2" class="block text-sm font-semibold text-slate-700 mb-2">2. Secondary Link</label>
+                    <input type="url" id="modalLinkInput2" placeholder="https://backup.drive.com/instructions.html"
+                           class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 accent-border focus:border-purple-500 transition-all duration-300">
                 </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left whitespace-nowrap">
-                        <thead class="bg-slate-50/50">
-                            <tr>
-                                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">User</th>
-                                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">UDID</th>
-                                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Link</th>
-                                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody" class="divide-y divide-slate-100">
-                            <!-- JS will inject rows here -->
-                        </tbody>
-                    </table>
-                </div>
+            </div>
+            <div class="mt-8 flex justify-end space-x-3">
+                <button onclick="closeModal('linkModal')" class="px-6 py-3 bg-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-300 transition duration-150 hover-lift ripple">Cancel</button>
+                <button id="modalSaveButton" class="px-6 py-3 accent-gradient text-white font-medium rounded-xl hover:shadow-lg transition duration-300 hover-lift ripple btn-glow">Save Links & Update</button>
             </div>
         </div>
-    </main>
+    </div>
 
-    <!-- MODAL (Glass style) -->
-    <div id="editModal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay-bg px-4">
-        <div class="glass bg-white rounded-2xl p-8 w-full max-w-lg transform transition-all scale-100 shadow-2xl">
-            <h3 class="text-2xl font-bold text-slate-800 mb-6">Edit Links</h3>
-            
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-sm font-bold text-slate-600 mb-2">Main Download Link</label>
-                    <input type="url" id="link1" placeholder="https://..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-all">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-600 mb-2">Backup Link (Optional)</label>
-                    <input type="url" id="link2" placeholder="https://..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-all">
-                </div>
-            </div>
-
-            <div class="mt-8 flex justify-end gap-3">
-                <button onclick="closeModal()" class="px-6 py-3 bg-slate-100 text-slate-600 font-medium rounded-xl hover:bg-slate-200 transition">Cancel</button>
-                <button id="saveBtn" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition transform hover:-translate-y-1">Save Changes</button>
+    <!-- Details Modal -->
+    <div id="detailsModal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-overlay-bg">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-xl mx-4 modal-slide-in">
+            <h3 class="text-2xl font-bold text-slate-800 mb-6 border-b pb-3">Order Details</h3>
+            <div id="detailsContent" class="space-y-3 text-sm"></div>
+            <div class="mt-8 flex justify-end">
+                <button onclick="closeModal('detailsModal')" class="px-6 py-3 bg-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-300 transition duration-150 hover-lift ripple">Close</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ✅ API URL (RENDER)
         const API_BASE_URL = 'https://irra-bot.onrender.com'; 
+        const tableBody = document.getElementById('orderTableBody');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const refreshIcon = document.getElementById('refreshIcon');
+        const refreshText = document.getElementById('refreshText');
+        const sidebar = document.getElementById('sidebar');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileBackdrop = document.getElementById('mobileBackdrop');
+        const orderCountBadge = document.getElementById('orderCountBadge');
 
-        let ordersData = [];
-        let currentOrderKey = null;
+        // Modal elements
+        const linkModal = document.getElementById('linkModal');
+        const modalLinkInput1 = document.getElementById('modalLinkInput'); 
+        const modalLinkInput2 = document.getElementById('modalLinkInput2'); 
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSaveButton = document.getElementById('modalSaveButton');
+        const detailsModal = document.getElementById('detailsModal');
+        const detailsContent = document.getElementById('detailsContent');
+        let currentOrderKey = null; 
+        
+        // Pagination State
+        const ITEMS_PER_PAGE = 10;
+        let allOrdersData = [];
+        let filteredOrders = [];
+        let currentPage = 1;
 
-        // --- Sidebar Logic ---
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('mobileOverlay');
+        // Pagination DOM Elements
+        const backButton = document.getElementById('backButton');
+        const nextButton = document.getElementById('nextButton');
+        const pageNumberDisplay = document.getElementById('pageNumberDisplay');
+        const totalItems = document.getElementById('totalItems');
+        const startRange = document.getElementById('startRange');
+        const endRange = document.getElementById('endRange');
+
+        // --- THEME COLOR LOGIC ---
+        const primaryPicker = document.getElementById('primaryColorPicker');
+        const secondaryPicker = document.getElementById('secondaryColorPicker');
+
+        // Function to lighten color (for backgrounds)
+        function getLightColor(hex, opacity = 0.15) {
+            let r = parseInt(hex.substring(1, 3), 16);
+            let g = parseInt(hex.substring(3, 5), 16);
+            let b = parseInt(hex.substring(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        }
+
+        function setTheme(primary, secondary) {
+            document.documentElement.style.setProperty('--primary', primary);
+            document.documentElement.style.setProperty('--secondary', secondary);
+            document.documentElement.style.setProperty('--primary-light', getLightColor(primary));
             
-            if (sidebar.classList.contains('-translate-x-full')) {
-                // Open
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            // Save to localStorage
+            localStorage.setItem('adminThemePrimary', primary);
+            localStorage.setItem('adminThemeSecondary', secondary);
+        }
+
+        function resetTheme() {
+            setTheme('#8b5cf6', '#ec4899'); // Default Purple/Pink
+            primaryPicker.value = '#8b5cf6';
+            secondaryPicker.value = '#ec4899';
+        }
+
+        // Event Listeners for Color Pickers
+        primaryPicker.addEventListener('input', (e) => setTheme(e.target.value, secondaryPicker.value));
+        secondaryPicker.addEventListener('input', (e) => setTheme(primaryPicker.value, e.target.value));
+
+        // Load Theme on Start
+        window.addEventListener('load', () => {
+            const savedPrimary = localStorage.getItem('adminThemePrimary');
+            const savedSecondary = localStorage.getItem('adminThemeSecondary');
+            if (savedPrimary) {
+                setTheme(savedPrimary, savedSecondary || '#ec4899');
+                primaryPicker.value = savedPrimary;
+                secondaryPicker.value = savedSecondary || '#ec4899';
+            }
+        });
+
+        // --- MOBILE MENU TOGGLE ---
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('sidebar-visible');
+            mobileBackdrop.classList.toggle('active');
+            
+            if(sidebar.classList.contains('sidebar-visible')) {
+                document.body.style.overflow = 'hidden';
             } else {
-                // Close
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('opacity-0');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
+                document.body.style.overflow = 'auto';
             }
         }
 
-        // --- Fetch Data ---
-        async function fetchOrders() {
-            document.getElementById('loader').classList.remove('hidden');
-            document.getElementById('tableBody').innerHTML = '';
+        if(mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleMobileMenu();
+            });
+        }
+
+        if(mobileBackdrop) {
+            mobileBackdrop.addEventListener('click', () => {
+                toggleMobileMenu();
+            });
+        }
+        
+        // --- MODAL FUNCTIONS ---
+        function openModal(modalId, orderKey = null, userId = null, currentLink = null) {
+            if (modalId === 'linkModal') {
+                currentOrderKey = orderKey;
+                modalTitle.textContent = `Edit Link for Order ${orderKey.substring(0, 8)}...`;
+                
+                const order = allOrdersData.find(o => o.order_key === orderKey) || {};
+                const link1 = order.link_primary || order.link || '';
+                const isDefault1 = link1.includes('http://yourdomain.com/downloads');
+                modalLinkInput1.value = isDefault1 ? '' : link1;
+                modalLinkInput2.value = order.link_secondary || '';
+            }
+            document.getElementById(modalId).classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- CORE FUNCTIONAL HANDLERS ---
+        modalSaveButton.onclick = async () => {
+            const link1 = modalLinkInput1.value.trim();
+            const link2 = modalLinkInput2.value.trim();
             
+            if (!link1 || !link1.startsWith('http')) {
+                showToast("Error: Primary Link 1 must be a valid http/https link.", 'error');
+                return;
+            }
+            
+            modalSaveButton.disabled = true;
+            modalSaveButton.textContent = 'Saving...';
+            
+            const success = await saveLink(currentOrderKey, link1, link2); 
+            
+            modalSaveButton.textContent = 'Save Links & Update';
+            modalSaveButton.disabled = false;
+            
+            if (success) {
+                closeModal('linkModal');
+            }
+        };
+
+        async function deleteOrder(orderKey) {
+            if (!confirm(`Are you sure you want to permanently delete order ${orderKey.substring(0, 8)}...? This cannot be undone.`)) {
+                return;
+            }
+
             try {
-                const res = await fetch(`${API_BASE_URL}/admin/orders`);
-                const data = await res.json();
-                ordersData = Object.values(data).sort((a, b) => new Date(b.completion_time) - new Date(a.completion_time));
-                
-                renderTable(ordersData);
-                updateStats();
-                document.getElementById('orderCountBadge').textContent = ordersData.length;
-            } catch (e) {
-                console.error(e);
-                alert("Connection Error to Backend");
-            } finally {
-                document.getElementById('loader').classList.add('hidden');
+                const response = await fetch(`${API_BASE_URL}/api/v1/delete_order/${orderKey}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    showToast(`Order ${orderKey.substring(0, 8)}... successfully deleted.`, 'error');
+                    allOrdersData = allOrdersData.filter(o => o.order_key !== orderKey);
+                    filterTable(); 
+                    calculateDashboardStats(allOrdersData); 
+                } else {
+                    const errorData = await response.json();
+                    showToast(`Failed to delete order: ${errorData.message || 'Server error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting order:', error);
+                showToast('Network error while deleting order.', 'error');
             }
         }
 
-        function renderTable(data) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
+        function viewDetails(orderKey) {
+            const order = allOrdersData.find(o => o.order_key === orderKey);
+            if (!order) {
+                showToast('Order details not found.', 'error');
+                return;
+            }
             
-            data.forEach(order => {
-                const isPending = !order.link || order.link.includes('yourdomain.com');
+            const primaryLink = order.link_primary || order.link || 'N/A';
+            const secondaryLink = order.link_secondary || 'N/A';
+            const isLinkPending = primaryLink.includes('http://yourdomain.com/downloads');
+            const completionDate = order.completion_time ? new Date(order.completion_time).toLocaleString() : 'N/A';
+
+            detailsContent.innerHTML = `
+                <div class="font-bold text-slate-800 text-xl mb-4 border-b pb-2">Order Summary</div>
+                <p class="text-base"><span class="font-medium accent-text">User:</span> ${order.username} (ID: ${order.user_id})</p>
+                <p class="text-base"><span class="font-medium accent-text">Order Key:</span> <code class="bg-slate-100 p-1 rounded text-xs">${order.order_key}</code></p>
+                <p class="text-base"><span class="font-medium accent-text">UDID:</span> <code class="bg-slate-100 p-1 rounded">${order.udid}</code></p>
+                <p class="text-base"><span class="font-medium accent-text">Plan/Price:</span> <span class="font-semibold">$${order.payment_option}</span></p>
+                <p class="text-base"><span class="font-medium accent-text">Submitted:</span> ${new Date(order.save_time).toLocaleString()}</p>
+                <p class="text-base"><span class="font-medium accent-text">Completed:</span> ${completionDate}</p>
+                <p class="text-base"><span class="font-medium accent-text">Link Status:</span> <span class="${isLinkPending ? 'text-red-500' : 'text-green-500'} font-semibold">${isLinkPending ? 'PENDING ADMIN LINK' : 'READY TO SEND'}</span></p>
+                <div class="mt-4 pt-3 border-t border-slate-200">
+                    <p class="text-base break-words"><span class="font-medium accent-text">1. Main Link:</span> <a href="${primaryLink}" target="_blank" class="text-blue-500 hover:underline">${primaryLink}</a></p>
+                    <p class="text-base break-words"><span class="font-medium accent-text">2. Secondary Link:</span> <a href="${secondaryLink}" target="_blank" class="text-blue-500 hover:underline">${secondaryLink}</a></p>
+                </div>
+            `;
+            openModal('detailsModal');
+        }
+
+        async function saveLink(orderKey, linkToSave1, linkToSave2) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/update_link/${orderKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ link1: linkToSave1, link2: linkToSave2 }),
+                });
+
+                if (response.ok) {
+                    showToast(`Links saved successfully!`, 'success');
+                    const index = allOrdersData.findIndex(o => o.order_key === orderKey);
+                    if (index !== -1) {
+                        allOrdersData[index].link = linkToSave1; 
+                        allOrdersData[index].link_primary = linkToSave1; 
+                        allOrdersData[index].link_secondary = linkToSave2; 
+                        filterTable(); 
+                        calculateDashboardStats(allOrdersData);
+                    }
+                    return true;
+                } else {
+                    const errorData = await response.json();
+                    showToast(`Failed: ${errorData.message}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error updating link:', error);
+                showToast('Network error.', 'error');
+                return false;
+            }
+        }
+        
+        async function sendLinkToUser(userId, orderKey) {
+            const order = allOrdersData.find(o => o.order_key === orderKey);
+            const primaryLink = order.link_primary || order.link || null;
+            
+            if (!primaryLink || primaryLink.includes('http://yourdomain.com/downloads')) {
+                showToast("Error: Save Primary Link before sending.", 'error');
+                return;
+            }
+            if (!confirm(`Confirm sending link to User ID ${userId}?`)) return;
+            
+            const button = document.getElementById(`sendButton-${orderKey}`);
+            const originalText = 'Send Link 🔗';
+            button.disabled = true;
+            button.textContent = 'Sending...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/send_link`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, link_primary: primaryLink, link_secondary: order.link_secondary || '' }),
+                });
+                const data = await response.json();
+                if (response.ok) showToast(`✅ ${data.message}`, 'success');
+                else showToast(`❌ ${data.message}`, 'error');
+            } catch (error) {
+                showToast('Network error.', 'error');
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
+        // --- STATS & TABLE RENDER ---
+        function calculateDashboardStats(orders) {
+            const now = new Date();
+            let totalOrders = orders.length, completedOrders = 0, pendingOrders = 0, totalRevenue = 0;
+
+            orders.forEach(order => {
+                const price = parseFloat(order.payment_option) || 0;
+                totalRevenue += price;
+                const isDefaultLink = !order.link || order.link.includes('http://yourdomain.com/downloads');
+                if (isDefaultLink) pendingOrders++; else completedOrders++;
+            });
+
+            animateValue("statTotalOrders", 0, totalOrders, 1000);
+            animateValue("statCompleted", 0, completedOrders, 1000);
+            animateValue("statPending", 0, pendingOrders, 1000);
+            document.getElementById("statRevenue").textContent = `$${totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById("statCompletionRate").textContent = `${totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0}% completion rate`;
+            document.getElementById("statMonthlyGrowth").innerHTML = '<span class="text-green-500">Auto-updated</span>';
+            document.getElementById("statRevenueGrowth").innerHTML = '<span class="text-green-500">Auto-updated</span>';
+        }
+
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            if (!obj) return;
+            if (start === end) { obj.textContent = end; return; }
+            const range = end - start;
+            let current = start;
+            const increment = end > start ? 1 : -1;
+            const stepTime = Math.abs(Math.floor(duration / range));
+            const timer = setInterval(() => {
+                current += increment;
+                obj.textContent = current;
+                if (current == end) clearInterval(timer);
+            }, Math.max(stepTime, 20));
+            if(Math.abs(range) > 100) { clearInterval(timer); obj.textContent = end; }
+        }
+
+        function filterTable() {
+            const searchTerm = document.getElementById('searchBar').value.toLowerCase();
+            filteredOrders = allOrdersData.filter(order => {
+                const user = order.username ? order.username.toLowerCase() : '';
+                const udid = order.udid ? order.udid.toLowerCase() : '';
+                return user.includes(searchTerm) || udid.includes(searchTerm);
+            });
+            currentPage = 1;
+            renderTableData(filteredOrders);
+        }
+        
+        function filterByStatus(status) {
+            document.getElementById('searchBar').value = ''; 
+            if (status === 'all') filteredOrders = allOrdersData;
+            else if (status === 'completed') filteredOrders = allOrdersData.filter(o => o.completion_time && !o.link.includes('http://yourdomain.com/downloads'));
+            else if (status === 'pending') filteredOrders = allOrdersData.filter(o => o.link.includes('http://yourdomain.com/downloads'));
+            else if (status === 'cancelled') filteredOrders = allOrdersData.filter(o => o.payment_option === '4'); 
+            
+            ['all', 'completed', 'pending', 'cancelled'].forEach(s => {
+                const btn = document.getElementById(`btn-${s}`);
+                if (s === status) btn.className = 'px-4 py-2 accent-gradient text-white font-medium rounded-lg text-sm whitespace-nowrap shine-effect';
+                else btn.className = 'px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium rounded-lg text-sm whitespace-nowrap transition-all duration-300';
+            });
+            currentPage = 1;
+            renderTableData(filteredOrders);
+        }
+
+        function renderTableData(orders) {
+            const tbody = document.getElementById('orderTableBody');
+            tbody.innerHTML = '';
+            const totalItemsCount = orders.length;
+            const totalPages = Math.ceil(totalItemsCount / ITEMS_PER_PAGE);
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const paginatedOrders = orders.slice(start, currentPage * ITEMS_PER_PAGE);
+
+            paginatedOrders.forEach((order, index) => {
                 const row = document.createElement('tr');
-                row.className = 'hover:bg-slate-50/50 transition-colors group';
+                row.className = 'hover:bg-slate-50 transition-all duration-300 fade-in-up';
+                row.style.animationDelay = `${index * 0.05}s`;
                 
+                const currentPrimaryLink = order.link_primary || order.link;
+                const isDefaultLink = !currentPrimaryLink || currentPrimaryLink.includes('http://yourdomain.com/downloads');
+                const linkButtonClass = isDefaultLink ? 'bg-red-500/80 hover:bg-red-600' : 'accent-gradient shadow-md btn-glow hover:shadow-lg'; 
+                const sendButtonColor = isDefaultLink ? 'bg-amber-500/80 hover:bg-amber-600' : 'bg-gradient-to-r from-green-500 to-emerald-600 shadow-md btn-glow hover:shadow-lg'; 
+                const completionBadgeClass = order.completion_time ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700';
+
                 row.innerHTML = `
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 text-white flex items-center justify-center font-bold text-sm shadow-md">
+                            <div class="w-10 h-10 rounded-full accent-gradient flex items-center justify-center text-white font-semibold shadow-lg">
                                 ${order.username ? order.username[0].toUpperCase() : 'U'}
                             </div>
                             <div>
-                                <p class="font-bold text-sm text-slate-700">${order.username || 'Unknown'}</p>
-                                <p class="text-xs text-slate-400">ID: ${order.user_id}</p>
+                                <p class="font-medium text-slate-800">${order.username}</p>
+                                <p class="text-xs text-slate-500">ID: ${order.user_id}</p>
                             </div>
                         </div>
                     </td>
                     <td class="px-6 py-4">
-                        <code class="bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200 text-xs">${order.udid}</code>
+                        <code class="text-xs bg-slate-100 px-3 py-2 rounded-lg font-mono text-slate-700 hover:bg-slate-200">${order.udid}</code>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${isPending ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'}">
-                            <span class="w-1.5 h-1.5 rounded-full ${isPending ? 'bg-amber-500' : 'bg-green-500'}"></span>
-                            ${isPending ? 'Pending' : 'Ready'}
-                        </span>
+                        <span class="text-lg font-bold text-slate-800">$${order.payment_option}</span>
                     </td>
                     <td class="px-6 py-4">
-                         <div class="text-xs text-slate-500 truncate max-w-[100px]">${isPending ? '-' : (order.link_primary || order.link)}</div>
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${completionBadgeClass} badge-pulse">${order.completion_time ? 'Completed' : 'In Progress'}</span>
                     </td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex items-center justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                            <button onclick="openModal('${order.order_key}')" class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition shadow-sm">
-                                <i class="fas fa-pen"></i>
-                            </button>
-                            <button onclick="sendLink('${order.user_id}', '${order.order_key}')" 
-                                    class="p-2 rounded-lg transition shadow-sm ${isPending ? 'bg-slate-100 text-slate-300' : 'bg-green-50 text-green-600 hover:bg-green-100'}" 
-                                    ${isPending ? 'disabled' : ''}>
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                            <button onclick="deleteOrder('${order.order_key}')" class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition shadow-sm">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">${isDefaultLink ? 'Pending Link' : 'Link Active'}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <button onclick="openModal('linkModal', '${order.order_key}', ${order.user_id}, '${currentPrimaryLink}')" class="px-3 py-2 text-xs font-medium text-white rounded-lg transition-all duration-300 hover-lift ${linkButtonClass} btn-glow">${isDefaultLink ? 'Input Link ❌' : 'Edit'}</button>
+                            <button id="sendButton-${order.order_key}" onclick="sendLinkToUser(${order.user_id}, '${order.order_key}')" class="p-2 text-white rounded-lg transition-all duration-300 hover-lift ripple ${sendButtonColor}" title="Send Link"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg></button>
+                            <button onclick="viewDetails('${order.order_key}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300 hover-lift ripple" title="View Details"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
+                            <button onclick="deleteOrder('${order.order_key}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300 hover-lift ripple" title="Delete Order"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                         </div>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
-        }
-
-        // --- Logic (Stats, Modal, Actions) ---
-
-        function updateStats() {
-            const total = ordersData.length;
-            const pending = ordersData.filter(o => !o.link || o.link.includes('yourdomain.com')).length;
-            const completed = total - pending;
-            const revenue = ordersData.reduce((acc, curr) => acc + (parseFloat(curr.payment_option) || 0), 0);
-
-            document.getElementById('statTotal').textContent = total;
-            document.getElementById('statPending').textContent = pending;
-            document.getElementById('statCompleted').textContent = completed;
-            document.getElementById('statRevenue').textContent = `$${revenue.toFixed(2)}`;
-        }
-
-        // Modal
-        function openModal(key) {
-            currentOrderKey = key;
-            const order = ordersData.find(o => o.order_key === key);
-            const isDefault = !order.link || order.link.includes('yourdomain.com');
-            document.getElementById('link1').value = isDefault ? '' : (order.link_primary || order.link);
-            document.getElementById('link2').value = order.link_secondary || '';
-            document.getElementById('editModal').classList.remove('hidden');
-        }
-        function closeModal() { document.getElementById('editModal').classList.add('hidden'); }
-
-        // Actions
-        document.getElementById('saveBtn').onclick = async () => {
-            const link1 = document.getElementById('link1').value;
-            const link2 = document.getElementById('link2').value;
-            if(!link1) return alert("Main link required");
             
-            document.getElementById('saveBtn').textContent = "Saving...";
-            await fetch(`${API_BASE_URL}/api/v1/update_link/${currentOrderKey}`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({link1, link2})
-            });
-            document.getElementById('saveBtn').textContent = "Save Changes";
-            closeModal();
-            fetchOrders();
-        };
-
-        async function sendLink(uid, key) {
-            if(!confirm("Send to user?")) return;
-            const order = ordersData.find(o => o.order_key === key);
-            await fetch(`${API_BASE_URL}/api/v1/send_link`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    user_id: uid,
-                    link_primary: order.link_primary || order.link,
-                    link_secondary: order.link_secondary
-                })
-            });
-            alert("Sent!");
+            updatePaginationControls(totalItemsCount, totalPages);
         }
 
-        async function deleteOrder(key) {
-            if(!confirm("Delete order?")) return;
-            await fetch(`${API_BASE_URL}/api/v1/delete_order/${key}`, {method:'DELETE'});
-            fetchOrders();
+        // --- PAGINATION & FETCH ---
+        nextButton.addEventListener('click', () => { if (currentPage * ITEMS_PER_PAGE < filteredOrders.length) { currentPage++; renderTableData(filteredOrders); } });
+        backButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTableData(filteredOrders); } });
+        
+        function updatePaginationControls(totalItemsCount, totalPages) {
+            const startItem = totalItemsCount > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0;
+            const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalItemsCount);
+            pageNumberDisplay.textContent = `Page ${currentPage} of ${totalPages}`;
+            totalItems.textContent = totalItemsCount;
+            startRange.textContent = startItem;
+            endRange.textContent = endItem;
+            backButton.disabled = (currentPage === 1);
+            nextButton.disabled = (currentPage === totalPages) || (totalItemsCount <= ITEMS_PER_PAGE);
         }
 
-        // Filtering
-        function filterTable() {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = ordersData.filter(o => (o.username||'').toLowerCase().includes(term) || (o.udid||'').toLowerCase().includes(term));
-            renderTable(filtered);
+        async function fetchOrders() {
+            tableBody.innerHTML = '';
+            loadingSpinner.classList.remove('hidden');
+            refreshText.textContent = 'Loading...';
+            refreshIcon.classList.add('rotate-animate');
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/orders`);
+                if (!response.ok) throw new Error();
+                const data = await response.json();
+                allOrdersData = Object.values(data).sort((a, b) => new Date(b.completion_time) - new Date(a.completion_time)); 
+                filteredOrders = allOrdersData;
+                orderCountBadge.textContent = allOrdersData.length;
+                calculateDashboardStats(allOrdersData);
+                currentPage = 1;
+                renderTableData(filteredOrders);
+                document.getElementById('paginationInfo').classList.remove('hidden');
+                showToast('Orders refreshed successfully!', 'success');
+            } catch (error) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Failed to connect to backend API at ${API_BASE_URL}.</td></tr>`;
+                showToast('Failed to load data.', 'error');
+            } finally {
+                loadingSpinner.classList.add('hidden');
+                refreshText.textContent = 'Refresh';
+                refreshIcon.classList.remove('rotate-animate');
+            }
         }
-        function filterTableMobile() {
-            const term = document.getElementById('searchInputMobile').value.toLowerCase();
-            const filtered = ordersData.filter(o => (o.username||'').toLowerCase().includes(term) || (o.udid||'').toLowerCase().includes(term));
-            renderTable(filtered);
-        }
-        function filterStatus(s) {
-            if(s === 'all') renderTable(ordersData);
-            else if(s === 'pending') renderTable(ordersData.filter(o => !o.link || o.link.includes('yourdomain.com')));
-            else if(s === 'completed') renderTable(ordersData.filter(o => o.link && !o.link.includes('yourdomain.com')));
+        
+        function showToast(message, type = 'success') {
+            const colors = { success: 'from-green-500 to-emerald-500', error: 'from-red-500 to-rose-500', info: 'from-blue-500 to-cyan-500' };
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-8 right-8 bg-gradient-to-r ${colors[type]} text-white px-6 py-4 rounded-xl shadow-2xl z-50 modal-slide-in flex items-center gap-3`;
+            toast.innerHTML = `<span class="font-medium">${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease-out'; setTimeout(() => toast.remove(), 300); }, 2000);
         }
 
-        // Init
-        document.addEventListener('DOMContentLoaded', fetchOrders);
+        document.addEventListener('DOMContentLoaded', () => { fetchOrders(); });
     </script>
 </body>
 </html>
