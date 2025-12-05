@@ -1,0 +1,19 @@
+cd D:\project\backend-frontend\web-order\bot
+python bot.py
+cd D:\project\backend-frontend\web-order\backend
+python app.py
+
+
+qJA8drkoNs8sOOaJ
+api-oder12345
+
+
+mongodb+srv://api-order:<db_passw@api-order.zzqyevm.mongodb.net/?appName=api-order
+
+
+
+
+89k2mXpa4oM1aCj9
+
+
+mongodb+srv://order_esign_db_user:89k2mXpa4oM1aCj9@cluster0.gtzpgxr.mongodb.net/?appName=Cluster0
