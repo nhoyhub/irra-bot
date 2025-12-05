@@ -19,20 +19,20 @@ logger = logging.getLogger(__name__)
 
 # --- CONFIGURATION ---
 BOT_TOKEN = "7159490173:AAGUTo8A5if89zNz0bUbA2HBTuj7rkgvozE" 
+OWNER_USERNAME = "@irra_11"  # ✅ Added Context: Owner Username
 
 # --- MONGODB CONNECTION ---
-# Connection String របស់អ្នក
 MONGO_URI = "mongodb+srv://order_esign_db_user:89k2mXpa4oM1aCj9@cluster0.gtzpgxr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
 try:
-    # ភ្ជាប់ទៅ MongoDB ដោយប្រើ certifi ដើម្បីជៀសវាងបញ្ហា SSL
+    # Connect to MongoDB using certifi to avoid SSL errors
     client = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
-    db = client['esign_shop_db']  # ឈ្មោះ Database
-    orders_collection = db['orders'] # ឈ្មោះ Collection (Table)
+    db = client['esign_shop_db']
+    orders_collection = db['orders']
     
     # Test connection
     client.admin.command('ping')
-    logger.info("✅ ជោគជ័យ៖ បានភ្ជាប់ទៅ MongoDB Atlas!")
+    logger.info(f"✅ ជោគជ័យ៖ បានភ្ជាប់ទៅ MongoDB Atlas! (System Owner: {OWNER_USERNAME})")
 except Exception as e:
     logger.critical(f"❌ បរាជ័យ៖ មិនអាចភ្ជាប់ទៅ MongoDB បានទេ: {e}")
 
@@ -64,7 +64,8 @@ def save_order():
             'link': personalized_link,
             'link_primary': personalized_link,
             'link_secondary': "",
-            'save_time': datetime.now().isoformat()
+            'save_time': datetime.now().isoformat(),
+            'processed_by': OWNER_USERNAME # ✅ Added Context: Record who owns the system
         }
         
         # Insert into MongoDB
@@ -109,7 +110,7 @@ def update_link(order_key):
     )
 
     if result.modified_count > 0:
-        logger.info(f"🔗 Links updated in MongoDB for order {order_key}")
+        logger.info(f"🔗 Links updated in MongoDB for order {order_key} by {OWNER_USERNAME}")
         return jsonify({
             "status": "success",
             "order_key": order_key,
@@ -149,14 +150,18 @@ def send_link_to_user_from_admin():
     is_file = link_primary.lower().endswith(('.zip', '.ipa', '.apk', '.exe', '.dmg', '.pdf', '.mobileprovision'))
     
     # --- 1. Send Text Message ---
-    secondary_text = f"\n🔗 [ Download Certificate ]({link_secondary})" if link_secondary else ""
+    secondary_text = f"🔗 [ Download Certificate ]({link_secondary})" if link_secondary else ""
+    
+    # ✅ Added Context: Signature for @irra_11
     caption_text = (
-        f"✅ *Your Order is Ready!*  \n\n"
+        f"✅ *ការបញ្ជាទិញរបស់អ្នកបានជោគជ័យ*  \n\n"
         f"👉🏻 *Download Link:* 👇🏻 \n"
         f"🔗 [ Install Esign ]({link_primary}) \n\n"
         f"{secondary_text}\n"
-        f"📦 _If the main link is a file, we are attempting to attach it below..._\n"
-        f"Thank you! 🎉"
+        f"📦 _If the main link is a file, we are attempting to attach it below..._\n\n"
+        f"Thank you! 🎉 \n"
+        f"📞 Contact Owner: {OWNER_USERNAME}\n"
+        f"/start"
     )
     
     try:
@@ -169,8 +174,6 @@ def send_link_to_user_from_admin():
         results['text_status'] = "✅ Text message sent."
         
         # Update completion time in MongoDB
-        # We search by user_id and link to find the specific order if possible, or just update based on user_id
-        # Note: Ideally we should pass order_key here, but based on your old logic:
         orders_collection.update_many(
             {'user_id': int(user_id), 'link_primary': link_primary},
             {'$set': {'completion_time': datetime.now().isoformat()}}
@@ -188,7 +191,7 @@ def send_link_to_user_from_admin():
             logger.info(f"🔄 Sending file via URL: {link_primary}")
             resp = requests.post(
                 f"https://api.telegram.org/bot{BOT_TOKEN}/sendDocument",
-                data={'chat_id': user_id, 'document': link_primary, 'caption': '📥 Here is your file attachment.'},
+                data={'chat_id': user_id, 'document': link_primary, 'caption': f'📥 File Attachment\n👤 From: {OWNER_USERNAME}'},
                 timeout=60
             )
             if resp.status_code == 200:
@@ -207,7 +210,7 @@ def send_link_to_user_from_admin():
                     files = {'document': (filename, BytesIO(file_resp.content), 'application/octet-stream')}
                     resp = requests.post(
                         f"https://api.telegram.org/bot{BOT_TOKEN}/sendDocument",
-                        data={'chat_id': user_id, 'caption': '📥 File (Re-uploaded)'},
+                        data={'chat_id': user_id, 'caption': f'📥 File (Re-uploaded)\n👤 From: {OWNER_USERNAME}'},
                         files=files,
                         timeout=120
                     )
@@ -246,9 +249,9 @@ def view_orders():
 # --- Route for HTML Page ---
 @app.route('/admin')
 def admin_panel():
-    return render_template('index.html') 
+    # You can pass variables to your template here if needed
+    return render_template('index.html', owner=OWNER_USERNAME) 
 
 if __name__ == '__main__':
-    print("🚀 Starting Flask Backend with MongoDB...")
-
+    print(f"🚀 Starting Flask Backend for {OWNER_USERNAME}...")
     app.run(debug=True, host='0.0.0.0', port=5000)

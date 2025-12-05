@@ -249,7 +249,7 @@ async def handle_payment_button(update: Update, context: ContextTypes.DEFAULT_TY
     
     # --- 🟢 ADD PAY NOW BUTTON HERE ---
     keyboard = [
-        [InlineKeyboardButton("Pay Now 💸 (ABA)", url=ABA_PAY_LINK)]
+        [InlineKeyboardButton("Pay Now", url=ABA_PAY_LINK)]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     # ----------------------------------
