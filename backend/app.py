@@ -149,11 +149,11 @@ def send_link_to_user_from_admin():
     is_file = link_primary.lower().endswith(('.zip', '.ipa', '.apk', '.exe', '.dmg', '.pdf', '.mobileprovision'))
     
     # --- 1. Send Text Message ---
-    secondary_text = f"\n🔗 [Backup/Guide Link]({link_secondary})" if link_secondary else ""
+    secondary_text = f"\n🔗 [ Download Certificate ]({link_secondary})" if link_secondary else ""
     caption_text = (
         f"✅ *Your Order is Ready!*  \n\n"
         f"👉🏻 *Download Link:* 👇🏻 \n"
-        f"🔗 [Click to Download]({link_primary}) \n\n"
+        f"🔗 [ Install Esign ]({link_primary}) \n\n"
         f"{secondary_text}\n"
         f"📦 _If the main link is a file, we are attempting to attach it below..._\n"
         f"Thank you! 🎉"
