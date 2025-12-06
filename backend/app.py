@@ -1,60 +1,59 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import uuid
 from datetime import datetime
 import logging
 import requests
-import os
-from io import BytesIO
 from pymongo import MongoClient
 import certifi
 
-# --- LOGGING SETUP ---
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+# --- LOGGING ---
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # --- CONFIGURATION ---
-# ✅ UPDATED: Fixed Token to match your bot.py
-BOT_TOKEN = "7586151294:AAE56w1KsB01qmfebOY4jccne2VI11ueMqM" 
-
-# --- MONGODB CONNECTION ---
+BOT_TOKEN = "7159490173:AAGUTo8A5if89zNz0bUbA2HBTuj7rkgvozE"
 MONGO_URI = "mongodb+srv://order_esign_db_user:89k2mXpa4oM1aCj9@cluster0.gtzpgxr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
+# --- MONGODB CONNECTION ---
 try:
     client = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
     db = client['esign_shop_db']
     orders_collection = db['orders']
-    
     client.admin.command('ping')
-    logger.info("✅ ជោគជ័យ៖ បានភ្ជាប់ទៅ MongoDB Atlas!")
+    logger.info("✅ Connected to MongoDB Atlas!")
 except Exception as e:
-    logger.critical(f"❌ បរាជ័យ៖ មិនអាចភ្ជាប់ទៅ MongoDB បានទេ: {e}")
+    logger.critical(f"❌ MongoDB Failed: {e}")
 
 app = Flask(__name__)
-CORS(app) 
+# Allow all origins for local HTML testing
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-# --- API Endpoint: Save Order (Insert to MongoDB) ---
+@app.route('/')
+def home():
+    return "Backend is Running! Open index.html to view dashboard."
+
+# --- API: Save Order ---
 @app.route('/api/v1/save_order', methods=['POST'])
 def save_order():
     try:
         data = request.json
-        if not data:
-            return jsonify({"message": "No data received"}), 400
-        
         order_key = str(uuid.uuid4())
-        personalized_link = f"http://yourdomain.com/downloads/{data.get('user_id', 'unknown')}/{order_key}"
+        
+        user_id = data.get('user_id')
+        personalized_link = f"http://yourdomain.com/downloads/{user_id}/{order_key}"
+        
+        # Get completion_time from Bot
+        completion_time = data.get('completion_time')
         
         order_data = {
             'order_key': order_key,
-            'user_id': data.get('user_id'),
+            'user_id': user_id,
             'username': data.get('username'),
             'udid': data.get('udid'),
             'payment_option': data.get('payment_option'),
-            'completion_time': data.get('completion_time'),
+            'completion_time': completion_time,  
             'link': personalized_link,
             'link_primary': personalized_link,
             'link_secondary': "",
@@ -62,181 +61,114 @@ def save_order():
         }
         
         orders_collection.insert_one(order_data)
-        logger.info(f"✅ Order saved to MongoDB. ID: {order_key}")
-        
-        return jsonify({
-            "status": "success",
-            "order_id": order_key,
-            "link": personalized_link
-        }), 200
-
+        logger.info(f"✅ Order Saved: {order_key} for User {user_id}")
+        return jsonify({"status": "success", "order_id": order_key}), 200
     except Exception as e:
-        logger.critical(f"Error in /save_order: {e}", exc_info=True)
-        return jsonify({"message": "Internal server error"}), 500
+        logger.error(f"❌ DB Save Error: {e}")
+        return jsonify({"message": str(e)}), 500
 
-
-# --- API Endpoint: Update Link (Update MongoDB) ---
+# --- API: Update Link ---
 @app.route('/api/v1/update_link/<order_key>', methods=['POST'])
 def update_link(order_key):
-    if not orders_collection.find_one({'order_key': order_key}):
-        return jsonify({"message": "Order not found"}), 404
+    try:
+        data = request.json
+        link1 = data.get('link1')
+        link2 = data.get('link2', '')
 
-    data = request.json
-    link_primary = data.get('link1')
-    link_secondary = data.get('link2', '') 
+        result = orders_collection.update_one(
+            {'order_key': order_key},
+            {'$set': {'link': link1, 'link_primary': link1, 'link_secondary': link2}}
+        )
+        if result.modified_count > 0:
+            return jsonify({"status": "success"}), 200
+        else:
+            return jsonify({"status": "no change or not found"}), 404
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
-    if not link_primary or not link_primary.startswith('http'):
-        return jsonify({"message": "Invalid Primary Link format"}), 400
-
-    result = orders_collection.update_one(
-        {'order_key': order_key},
-        {'$set': {
-            'link': link_primary,
-            'link_primary': link_primary,
-            'link_secondary': link_secondary,
-            'link_updated_at': datetime.now().isoformat()
-        }}
-    )
-
-    if result.modified_count > 0:
-        logger.info(f"🔗 Links updated in MongoDB for order {order_key}")
-        return jsonify({
-            "status": "success",
-            "order_key": order_key,
-            "link_primary": link_primary
-        }), 200
-    else:
-        return jsonify({"message": "No changes made or error updating"}), 500
-
-
-# --- API Endpoint: Delete Order ---
+# --- API: Delete Order ---
 @app.route('/api/v1/delete_order/<order_key>', methods=['DELETE'])
 def delete_order(order_key):
-    result = orders_collection.delete_one({'order_key': order_key})
-    
-    if result.deleted_count > 0:
-        logger.info(f"🗑️ Order deleted from MongoDB: {order_key}")
-        return jsonify({"status": "success", "message": f"Order {order_key} deleted."}), 200
-    else:
-        return jsonify({"message": "Order not found"}), 404
+    orders_collection.delete_one({'order_key': order_key})
+    return jsonify({"status": "success"}), 200
 
-
-# --- API Endpoint: Send Link to User ---
+# --- API: Send Link to Telegram User (NEW UI) ---
 @app.route('/api/v1/send_link', methods=['POST'])
-def send_link_to_user_from_admin():
+def send_link():
     data = request.json
     user_id = data.get('user_id')
-    link_primary = data.get('link_primary') 
-    link_secondary = data.get('link_secondary', '') 
+    link_primary = data.get('link_primary')
+    link_secondary = data.get('link_secondary', '')
 
     if not user_id or not link_primary:
-        return jsonify({"message": "Missing user_id or primary link"}), 400
-    
-    user_id = str(user_id)
-    results = {}
-    
-    is_file = link_primary.lower().endswith(('.zip', '.ipa', '.apk', '.exe', '.dmg', '.pdf', '.mobileprovision'))
-    
-    # --- 1. Send Text Message (UPDATED) ---
-    secondary_text = f"🔗 [ Download Certificate ]({link_secondary})" if link_secondary else ""
-    
-    # ✅ UPDATED CAPTION TEXT HERE
-    caption_text = (
-        f"✅ *ការបញ្ជាទិញរបស់អ្នកបានជោគជ័យ*  \n\n"
-        f"👉🏻 *Download Link:* 👇🏻 \n"
-        f"🔗 [ Install Esign ]({link_primary}) \n\n"
-        f"{secondary_text}\n"
-        f"📞 Contact Owner: @irra_11\n"
-        f"🔄 Buy Again: /start\n\n"
-        f"Thank you! 🎉 \n"
+        return jsonify({"message": "Missing Data"}), 400
+
+    # 🎨 NEW UI WITH SOCIAL MEDIA LINKS
+    msg_text = (
+        "🎉 <b>ការបញ្ជាទិញជោគជ័យ | ORDER COMPLETED</b>\n"
+        "──────────────────────\n\n"
+        "🙏 អរគុណសម្រាប់ការគាំទ្រ! ខាងក្រោមនេះគឺជាលីងសម្រាប់ដំឡើងរបស់អ្នក៖\n"
+        "<i>(Thank you for your support! Here are your download links)</i>\n\n"
+        
+        "👇 <b>DOWNLOAD HERE:</b>\n"
+        f"📱 <a href='{link_primary}'><b>Click to Install Esign App</b></a>\n"
     )
     
+    if link_secondary:
+        msg_text += f"📂 <a href='{link_secondary}'><b>Click to Download Certificate</b></a>\n"
+    
+    # 👇 UPDATE YOUR LINKS BELOW 👇
+    msg_text += (
+        "\n──────────────────────\n"
+        "👤 <b>Follow Us & Support:</b>\n"
+        "💬 <a href='https://t.me/irra_11'>Telegram Owner</a>\n"
+        "🌐 <a href='https://www.irra.store'>Website</a>\n"
+    )
+
     try:
-        text_response = requests.post(
-            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-            data={'chat_id': user_id, 'text': caption_text, 'parse_mode': 'Markdown'},
-            timeout=10
-        )
+        # 1. Send Message (HTML Mode)
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        resp = requests.post(url, json={
+            'chat_id': user_id, 
+            'text': msg_text, 
+            'parse_mode': 'HTML',
+            'disable_web_page_preview': True
+        })
         
-        # Check if the token was rejected
-        if text_response.status_code == 401:
-            logger.error("❌ Invalid Bot Token. Please check CONFIGURATION.")
-            return jsonify({"message": "Invalid Bot Token on Backend"}), 500
-            
-        text_response.raise_for_status()
-        results['text_status'] = "✅ Text message sent."
-        
-        orders_collection.update_many(
-            {'user_id': int(user_id), 'link_primary': link_primary},
-            {'$set': {'completion_time': datetime.now().isoformat()}}
-        )
+        if resp.status_code != 200:
+            print(f"❌ Telegram Error: {resp.text}")
+            return jsonify({"message": f"Telegram Error: {resp.text}"}), 400
+
+        # 2. Try Send File (If it is a file)
+        if link_primary.lower().endswith(('.zip', '.ipa', '.pdf', '.mobileprovision')):
+            try:
+                requests.post(
+                    f"https://api.telegram.org/bot{BOT_TOKEN}/sendDocument",
+                    data={'chat_id': user_id, 'document': link_primary}
+                )
+            except:
+                pass 
+
+        return jsonify({"status": "success", "message": "Sent successfully!"}), 200
 
     except Exception as e:
-        results['text_status'] = f"❌ Failed to send text: {str(e)}"
-        logger.error(f"❌ Failed to send text to {user_id}: {e}")
-    
-    # --- 2. Send File ---
-    file_sent = False
-    if is_file:
-        try:
-            logger.info(f"🔄 Sending file via URL: {link_primary}")
-            resp = requests.post(
-                f"https://api.telegram.org/bot{BOT_TOKEN}/sendDocument",
-                data={'chat_id': user_id, 'document': link_primary, 'caption': '📥 Here is your file attachment.'},
-                timeout=60
-            )
-            if resp.status_code == 200:
-                results['file_status'] = "✅ File sent via Direct URL"
-                file_sent = True
-        except Exception as e:
-            logger.warning(f"⚠️ Direct URL failed: {e}")
+        return jsonify({"message": str(e)}), 500
 
-        if not file_sent:
-            try:
-                logger.info("🔄 Downloading to re-upload...")
-                file_resp = requests.get(link_primary, timeout=120, stream=True)
-                if file_resp.status_code == 200:
-                    filename = link_primary.split('/')[-1].split('?')[0] or "download.zip"
-                    files = {'document': (filename, BytesIO(file_resp.content), 'application/octet-stream')}
-                    resp = requests.post(
-                        f"https://api.telegram.org/bot{BOT_TOKEN}/sendDocument",
-                        data={'chat_id': user_id, 'caption': '📥 File (Re-uploaded)'},
-                        files=files,
-                        timeout=120
-                    )
-                    if resp.status_code == 200:
-                        results['file_status'] = "✅ File sent via Re-upload"
-            except Exception as e:
-                logger.error(f"❌ Re-upload failed: {e}")
-    
-    return jsonify({"status": "success", "details": results}), 200
-
-
-# --- Admin Endpoint: Get All Orders ---
+# --- API: Get Orders for Admin Panel ---
 @app.route('/admin/orders')
-def view_orders():
+def get_orders():
     try:
         cursor = orders_collection.find()
         orders_dict = {}
         for doc in cursor:
-            if '_id' in doc:
-                doc['_id'] = str(doc['_id'])
-            
+            if '_id' in doc: doc['_id'] = str(doc['_id'])
             key = doc.get('order_key')
-            if key:
-                orders_dict[key] = doc
-                
+            if key: orders_dict[key] = doc
         return jsonify(orders_dict)
     except Exception as e:
         logger.error(f"Error fetching orders: {e}")
         return jsonify({}), 500
 
-
-# --- Route for HTML Page ---
-@app.route('/admin')
-def admin_panel():
-    return render_template('index.html') 
-
 if __name__ == '__main__':
-    print("🚀 Starting Flask Backend with MongoDB...")
+    print("🚀 Flask Backend Running on port 5000...")
     app.run(debug=True, host='0.0.0.0', port=5000)

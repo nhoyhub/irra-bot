@@ -4,38 +4,33 @@ import asyncio
 from datetime import datetime
 import aiohttp
 import json
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.helpers import escape_markdown
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
 # --- CONFIGURATION ---
-# Token Bot 1 (Bot សម្រាប់ User)
 BOT_TOKEN = "7586151294:AAE56w1KsB01qmfebOY4jccne2VI11ueMqM"
-# Token Bot 2 (Bot សម្រាប់ Admin Approve)
-BOT_2_TOKEN = "7836377853:AAHvTlYlqK-TbvbwVRzvG5oPotaFdNntn3A"
+BOT_2_TOKEN = "7836377853:AAHvTlYlqK-TbvbwVRzvG5oPotaFdNntn3A" # Admin Bot
 
-# Chat ID របស់ Admin
+# Admin Chat IDs
 ADMIN_CHAT_ID = "1732455712"
 BOT_2_ADMIN_CHAT_ID = "1732455712"
 
-# Link ទៅកាន់ Backend API (ត្រូវ Run app.py ផង)
+# Link to Flask Backend (Must match app.py)
 BACKEND_API_URL = "http://127.0.0.1:5000/api/v1/save_order"
 
-# Link បង់លុយ ABA
+# Payment Link
 ABA_PAY_LINK = "https://pay.ababank.com/oRF8/2ug5pzi4"
 
-# --- ASSET URLs (រូបភាព) ---
+# --- ASSET URLs ---
 START_PHOTO_URL = "https://i.pinimg.com/736x/fa/af/0a/faaf0a3dbfeff4591b189d7b5016ae04.jpg"
 PAYMENT_PHOTO_URL = "https://i.pinimg.com/1200x/44/4b/af/444baf1fba6fcf56f53d3740162d2e61.jpg"
 QR_PHOTO_10_URL = "https://i.pinimg.com/736x/c2/c5/03/c2c50300cc357884d7819e57e4e9d860.jpg"
 SUCCESS_PHOTO_URL = "https://i.pinimg.com/originals/23/50/8e/23508e8b1e8dea194d9e06ae507e4afc.gif"
 REJECTED_PHOTO_URL = "https://i.pinimg.com/originals/a5/75/0b/a5750babcf0f417f30e0b4773b29e376.gif"
 
-# --- LOGGING SETUP ---
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+# --- LOGGING ---
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # --- IN-MEMORY DATA ---
@@ -46,12 +41,10 @@ completed_orders = {}
 # --- HELPER FUNCTIONS ---
 
 async def send_alert_after_30s(user_id: int) -> None:
-    """ជូនដំណឹងបន្ទាប់ពី 30 វិនាទី (Optional)"""
     await asyncio.sleep(30)
-    # អាចបន្ថែម Logic ផ្ញើសារនៅទីនេះបើចង់
 
 async def send_to_bot_2_for_approval(user_id: int, username: str, udid: str, payment_option: str) -> bool:
-    """ផ្ញើសំណើរសុំ Approve ទៅកាន់ Bot 2 (Admin)"""
+    """Send approval request to Admin Bot"""
     url = f"https://api.telegram.org/bot{BOT_2_TOKEN}/sendMessage"
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
@@ -91,21 +84,26 @@ async def send_to_bot_2_for_approval(user_id: int, username: str, udid: str, pay
 
 async def send_response_to_user(user_id: int, approved: bool) -> bool:
     """
-    1. ផ្ញើសារប្រាប់ User (Bot 1)
-    2. Save ទិន្នន័យចូល Database (backend/app.py) 
+    1. Notify User
+    2. Save to Backend Database
     """
     tg_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
     
-    user_info = pending_approvals.get(user_id, {})
+    # Retrieve info from memory
+    user_info = pending_approvals.get(user_id)
     
-    if approved:
-        photo_url = SUCCESS_PHOTO_URL
+    # Fallback if memory was cleared (e.g. restart)
+    if not user_info and user_id in completed_orders:
+        user_info = completed_orders[user_id]
+    
+    if approved and user_info:
         username = user_info.get('username', 'Unknown')
         udid = user_info.get('udid', 'N/A')
         payment_option = user_info.get('payment_option', '0')
         display_name = username.replace('@', '') if username.startswith('@') else username
+        photo_url = SUCCESS_PHOTO_URL
         
-        # --- 🟢 SAVE TO BACKEND (DATABASE) ---
+        # --- 🟢 IMPORTANT: SAVE TO BACKEND ---
         payload_db = {
             "user_id": user_id,
             "username": username,
@@ -114,19 +112,29 @@ async def send_response_to_user(user_id: int, approved: bool) -> bool:
             "completion_time": datetime.now().isoformat()
         }
         
+        print(f"🔄 Sending data to Backend for User {user_id}...") 
+
         try:
             async with aiohttp.ClientSession() as session:
-                # ហៅទៅ API របស់ Flask app.py
-                async with session.post(BACKEND_API_URL, json=payload_db) as resp:
+                # ✅ FIX: Added Headers to ensure Flask reads JSON correctly
+                async with session.post(
+                    BACKEND_API_URL, 
+                    json=payload_db,
+                    headers={'Content-Type': 'application/json'}
+                ) as resp:
                     if resp.status == 200:
                         logger.info(f"✅ Data saved to Web Backend for {user_id}")
+                        print("✅ SUCCESS: Saved to Database!")
                     else:
-                        logger.error(f"❌ Failed to save to DB: {await resp.text()}")
+                        error_msg = await resp.text()
+                        logger.error(f"❌ Failed to save to DB. Status: {resp.status}. Msg: {error_msg}")
+                        print(f"❌ ERROR: Backend rejected data: {error_msg}")
         except Exception as e:
             logger.error(f"❌ Connection error to Backend: {e}")
+            print(f"⚠️ Check if app.py is running! Error: {e}")
         # -------------------------------------
 
-        # Save to local cache for /Details command
+        # Save to local cache
         completed_orders[user_id] = {
             'username': username,
             'udid': udid,
@@ -169,8 +177,6 @@ async def send_response_to_user(user_id: int, approved: bool) -> bool:
 
 def validate_udid(udid: str) -> bool:
     if not udid: return False
-    # UDID ធម្មតាមានប្រវែង 40 (old) ឬ 25 (iPhone XS/XR up)
-    # យើងអនុញ្ញាតចន្លោះ 20-50 
     return 20 <= len(udid) <= 50 and all(c in '0123456789abcdefABCDEF-' for c in udid)
 
 # --- BOT HANDLERS ---
@@ -180,7 +186,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     user_id = user.id
 
-    # Reset data
     if user_id in user_data: del user_data[user_id]
 
     keyboard = [[InlineKeyboardButton("📱 ទាញយក UDID Profile", url="https://udid.tech/download-profile")]]
@@ -247,12 +252,10 @@ async def handle_payment_button(update: Update, context: ContextTypes.DEFAULT_TY
         f"3️⃣ ផ្ញើរូបភាពចូលក្នុង Chat នេះ\\."
     )
     
-    # --- 🟢 ADD PAY NOW BUTTON HERE ---
     keyboard = [
         [InlineKeyboardButton("Pay Now", url=ABA_PAY_LINK)]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    # ----------------------------------
     
     await query.edit_message_caption(caption="✅ កំពុងដំណើរការ...", reply_markup=None)
     
@@ -319,12 +322,9 @@ async def handle_bot2_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     
     status = "✅ បានអនុម័ត" if approved else "❌ បានបដិសេធ"
     
-    # Update Admin Message
     current_text = query.message.text
-    # Remove buttons
     await query.edit_message_text(f"{current_text}\n\nស្ថានភាព: {status}", reply_markup=None)
     
-    # Clean up memory
     del pending_approvals[user_id]
     if approved and user_id in user_data: del user_data[user_id]
 
@@ -337,7 +337,6 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     else: 
         await handle_udid_input(update, context)
 
-# --- MAIN ---
 async def main() -> None:
     app1 = Application.builder().token(BOT_TOKEN).build()
     app2 = Application.builder().token(BOT_2_TOKEN).build()
