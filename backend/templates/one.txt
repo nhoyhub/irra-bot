@@ -28,10 +28,10 @@
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            color: #e2e8f0; /* Default text color set to light */
+            color: #e2e8f0; 
         }
         
-        /* Dark overlay for readability - Stronger gradient */
+        /* Dark overlay for readability */
         body::before {
             content: '';
             position: absolute;
@@ -40,29 +40,24 @@
             z-index: -1;
         }
 
-        /* UTILITIES - Mapped from original classes */
-        .glass { /* Original Header/Card/Table BG */
+        /* GLASS EFFECTS */
+        .glass {
             background: rgba(30, 30, 40, 0.6);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 0, 0.2); /* Neon Gold Border */
+            border: 1px solid rgba(255, 255, 0, 0.2);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
         }
         
-        .glass-dark { /* Original Sidebar BG */
+        .glass-dark {
             background: rgba(10, 10, 15, 0.98);
             backdrop-filter: blur(20px);
             border-right: 2px solid var(--neon-gold);
             box-shadow: 4px 0 30px rgba(255, 255, 0, 0.2);
         }
 
-        .accent-gradient { /* Original Profile Image Border */
+        .accent-gradient {
             background: linear-gradient(135deg, var(--neon-red), var(--neon-gold)); 
             box-shadow: 0 0 10px var(--neon-red);
-        }
-        .text-gradient { 
-            background: linear-gradient(135deg, var(--neon-red), var(--neon-gold)); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
         }
 
         /* Neon Glow Text */
@@ -76,7 +71,7 @@
             text-shadow: 0px 0px 6px var(--neon-red), 0px 0px 3px var(--neon-red);
         }
 
-        /* CUSTOM SCROLLBAR (Horizontal scroll for table) - Neon Gold */
+        /* CUSTOM SCROLLBAR */
         .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: var(--glow-dark); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--neon-gold); border-radius: 4px; box-shadow: 0 0 5px var(--neon-gold); }
@@ -84,24 +79,18 @@
         /* ANIMATIONS */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        /* SIDEBAR TRANSITIONS */
-        .sidebar-transition { transition: transform 0.3s ease-in-out; }
-        
-        /* HIDE SCROLLBAR FOR MOBILE MENUS */
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="min-h-screen relative overflow-x-hidden text-slate-200 selection:bg-red-500 selection:text-white">
 
-<!-- MOBILE BACKDROP (Click to close sidebar) -->
+<!-- MOBILE BACKDROP -->
 <div id="mobileBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/95 z-40 hidden lg:hidden backdrop-blur-lg"></div>
 
 <!-- MAIN LAYOUT -->
 <div class="flex h-screen overflow-hidden">
 
     <!-- SIDEBAR -->
-    <!-- Fixed on mobile, Relative on Desktop -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 glass-dark text-white transform -translate-x-full lg:translate-x-0 lg:static lg:inset-auto transition-transform duration-300 flex flex-col h-full shadow-2xl border-r-2 border-[var(--neon-gold)]">
         
         <!-- Sidebar Header -->
@@ -118,12 +107,10 @@
 
         <!-- Nav Links -->
         <nav class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-            <!-- Active link: Neon Red -->
             <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--neon-red)]/20 text-[var(--neon-red)] border-l-4 border-[var(--neon-red)] shadow-lg shadow-red-900/40">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 Wanted Orders
             </a>
-            <!-- Inactive link: Neon Gold Hover -->
             <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-[var(--neon-gold)] transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 Crew Members
@@ -144,7 +131,6 @@
         
         <!-- HEADER -->
         <header class="h-16 glass z-30 flex items-center justify-between px-4 lg:px-8 shadow-sm border-b-2 border-[var(--neon-gold)]/50">
-            <!-- Mobile Menu Button -->
             <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-white/10 text-slate-300">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
@@ -152,9 +138,6 @@
             <h1 class="text-xl font-bold hidden sm:block text-gold pirate-font text-red-glow">Dashboard</h1>
             
             <div class="flex items-center gap-4 ml-auto">
-                <button onclick="fetchOrders()" class="p-2 text-slate-300 hover:text-[var(--neon-gold)] transition active:rotate-180 duration-500" title="Refresh Log Pose">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                </button>
                 <div class="w-8 h-8 rounded-full accent-gradient p-0.5">
                     <img src="https://i.pinimg.com/1200x/d7/51/67/d75167a9d61835f3a316f6bcd88a8f26.jpg" class="w-full h-full rounded-full object-cover border-2 border-black">
                 </div>
@@ -192,7 +175,7 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
                     </div>
-                    <p id="statCompletionRate" class="text-xs text-green-500 mt-2 font-medium">100% Rate</p>
+                    <p id="statCompletionRate" class="text-xs text-green-500 mt-2 font-medium">0% Rate</p>
                 </div>
 
                 <!-- Pending -->
@@ -236,6 +219,9 @@
                                class="w-full pl-10 pr-4 py-2 rounded-xl bg-black/50 border border-white/20 focus:outline-none focus:ring-2 focus:ring-[var(--neon-gold)] text-white placeholder-slate-500 transition shadow-inner shadow-black/50">
                         <svg class="w-4 h-4 text-slate-500 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
+                                    <button onclick="fetchOrders()" class="p-2 text-slate-300 hover:text-[var(--neon-gold)] transition active:rotate-180 duration-500" title="Refresh Log Pose">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
                 </div>
                 
                 <!-- FILTER TABS -->
@@ -254,7 +240,7 @@
                                 <th class="px-6 py-4 font-semibold">UDID</th>
                                 <th class="px-6 py-4 font-semibold">Price</th>
                                 <th class="px-6 py-4 font-semibold">Status</th>
-                                <th class="px-6 py-4 font-semibold">Link</th>
+                                <th class="px-6 py-4 font-semibold">Links</th>
                                 <th class="px-6 py-4 font-semibold text-right">Actions</th>
                             </tr>
                         </thead>
@@ -278,7 +264,7 @@
                 </div>
             </div>
 
-            <div class="h-20"></div> <!-- Spacer for mobile scroll -->
+            <div class="h-20"></div> <!-- Spacer -->
         </div>
     </main>
 </div>
@@ -294,12 +280,13 @@
         </div>
         <div class="p-6 space-y-4">
             <div>
-                <label class="block text-sm font-medium text-[var(--neon-gold)] mb-1 text-red-glow">Primary Coordinates</label>
-                <input type="url" id="modalLinkInput" class="w-full p-3 bg-black/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-[var(--neon-gold)] outline-none text-sm text-white placeholder-slate-600" placeholder="https://...">
+                <label class="block text-sm font-medium text-[var(--neon-gold)] mb-1 text-red-glow">1. Esign App Link (Primary)</label>
+                <input type="url" id="modalLinkInput" class="w-full p-3 bg-black/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-[var(--neon-gold)] outline-none text-sm text-white placeholder-slate-600" placeholder="https://drive.google.com/...">
+                <p class="text-xs text-slate-500 mt-1">This link is required.</p>
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-400 mb-1">Secondary Route (Optional)</label>
-                <input type="url" id="modalLinkInput2" class="w-full p-3 bg-black/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-[var(--neon-gold)] outline-none text-sm text-white placeholder-slate-600" placeholder="https://...">
+                <label class="block text-sm font-medium text-green-400 mb-1">2. Certificate Link (Optional)</label>
+                <input type="url" id="modalLinkInput2" class="w-full p-3 bg-black/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-green-500 outline-none text-sm text-white placeholder-slate-600" placeholder="https://...">
             </div>
         </div>
         <div class="p-6 bg-black/40 flex justify-end gap-3 border-t border-white/10">
@@ -309,26 +296,13 @@
     </div>
 </div>
 
-<!-- MODAL: DETAILS -->
-<div id="detailsModal" class="fixed inset-0 z-[60] flex items-center justify-center hidden bg-black/95 backdrop-blur-xl p-4">
-    <div class="glass rounded-2xl shadow-2xl w-full max-w-lg w-[95%] overflow-hidden border-2 border-white/10">
-        <div class="p-6 border-b border-white/10 bg-white/5">
-            <h3 class="text-lg font-bold text-white pirate-font">Order Details</h3>
-        </div>
-        <div id="detailsContent" class="p-6 text-sm text-slate-400 space-y-2 break-words">
-            <!-- Content injected via JS -->
-        </div>
-        <div class="p-6 bg-black/40 text-right border-t border-white/10">
-            <button onclick="closeModal('detailsModal')" class="px-4 py-2 bg-white/10 text-white rounded-lg font-medium hover:bg-white/20">Close</button>
-        </div>
-    </div>
-</div>
-
 <!-- JAVASCRIPT LOGIC -->
 <script>
-    const API_BASE_URL = 'https://irra-bot.onrender.com'; // Set this to your local or deployed Flask backend URL
+    // ⚠️ IMPORTANT: Change this URL to your live server when deploying!
+    // const API_BASE_URL = 'https://irra-bot.onrender.com';
+    const API_BASE_URL = 'http://127.0.0.1:5000'; 
     
-    // --- MOBILE SIDEBAR TOGGLE (Original Logic) ---
+    // --- SIDEBAR LOGIC ---
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const backdrop = document.getElementById('mobileBackdrop');
@@ -345,14 +319,14 @@
         }
     }
 
-    // --- DATA VARIABLES ---
+    // --- STATE VARIABLES ---
     let allOrdersData = [];
     let filteredOrders = [];
     let currentPage = 1;
     const ITEMS_PER_PAGE = 10;
     let currentOrderKey = null;
 
-    // --- FETCH DATA (Connected to Backend) ---
+    // --- FETCH DATA ---
     async function fetchOrders() {
         const spinner = document.getElementById('loadingSpinner');
         const tbody = document.getElementById('orderTableBody');
@@ -361,11 +335,10 @@
         tbody.innerHTML = '';
         
         try {
-            // CALL YOUR FLASK BACKEND API
             const response = await fetch(`${API_BASE_URL}/admin/orders`);
             const data = await response.json();
             
-            // Convert data from object to array and sort by save_time (newest first)
+            // Sort by save_time desc (newest first)
             allOrdersData = Object.values(data).sort((a, b) => new Date(b.save_time) - new Date(a.save_time));
             filteredOrders = allOrdersData;
             
@@ -373,15 +346,15 @@
             renderTable();
             showToast("LOG POSE UPDATED!", "success");
         } catch (error) {
-            console.error("Error connecting to backend:", error);
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-400 pirate-font">Error! The Log Pose is broken. Check your Flask server.</td></tr>`;
+            console.error("Backend Error:", error);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-400 pirate-font">Connection Lost! Is Flask running?</td></tr>`;
             showToast("Connection failed", "error");
         } finally {
             spinner.classList.add('hidden');
         }
     }
 
-    // --- RENDER TABLE (Fixed for Full UDID Display) ---
+    // --- RENDER TABLE ---
     function renderTable() {
         const tbody = document.getElementById('orderTableBody');
         tbody.innerHTML = '';
@@ -396,7 +369,18 @@
         }
 
         pageData.forEach(order => {
-            const isLinkPending = !order.link_primary || order.link_primary.includes('yourdomain.com') || order.link_primary.trim() === '';
+            // Check if Primary Link is set
+            const hasLink1 = order.link_primary && !order.link_primary.includes('yourdomain.com') && order.link_primary.trim() !== '';
+            const hasLink2 = order.link_secondary && order.link_secondary.trim() !== '';
+
+            // Formatting Price
+            let priceDisplay = "0.00";
+            if (!isNaN(parseFloat(order.payment_option))) {
+                priceDisplay = parseFloat(order.payment_option).toLocaleString('en-US', {minimumFractionDigits: 2});
+            } else {
+                priceDisplay = order.payment_option; // Show text if not a number
+            }
+
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-black/5 transition'; 
             
@@ -404,28 +388,30 @@
                 <td class="px-6 py-4">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-slate-800 border-2 border-yellow-500/50 flex items-center justify-center font-bold text-yellow-500 text-xs shadow-inner shadow-yellow-500/20">
-                            ${order.username.charAt(0).toUpperCase()}
+                            ${(order.username || 'U').charAt(0).toUpperCase()}
                         </div>
                         <div>
-                            <p class="font-bold text-white text-sm tracking-wide">${order.username}</p>
+                            <p class="font-bold text-white text-sm tracking-wide">${order.username || 'Unknown'}</p>
                             <p class="text-xs text-slate-500 font-mono">ID: ${order.user_id}</p>
                         </div>
                     </div>
                 </td>
                 <td class="px-6 py-4">
-                    <!-- FIXED: Display Full UDID -->
                     <code class="bg-black/40 px-2 py-1 rounded text-xs text-slate-400 border border-white/20 font-mono tracking-normal break-all">${order.udid}</code>
                 </td>
-                <td class="px-6 py-4 font-bold text-yellow-400 font-mono">$${parseFloat(order.payment_option).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                <td class="px-6 py-4 font-bold text-yellow-400 font-mono">$${priceDisplay}</td>
                 <td class="px-6 py-4">
-                    <span class="px-2 py-1 rounded-full text-xs font-bold uppercase ${isLinkPending ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30' : 'bg-green-500/10 text-green-400 border border-green-500/30'}">
-                        ${isLinkPending ? 'WANTED' : 'CAPTURED'}
+                    <span class="px-2 py-1 rounded-full text-xs font-bold uppercase ${!hasLink1 ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30' : 'bg-green-500/10 text-green-400 border border-green-500/30'}">
+                        ${!hasLink1 ? 'WANTED' : 'CAPTURED'}
                     </span>
                 </td>
                 <td class="px-6 py-4">
-                     <span class="text-xs font-bold ${isLinkPending ? 'text-red-400' : 'text-blue-400'}">
-                        ${isLinkPending ? 'Missing' : 'Active'}
-                     </span>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs ${hasLink1 ? 'text-blue-400' : 'text-red-400'}">
+                           ${hasLink1 ? '✓ Esign Ready' : '• Missing Esign'}
+                        </span>
+                        ${hasLink2 ? '<span class="text-xs text-green-400">✓ Cert Ready</span>' : ''}
+                    </div>
                 </td>
                 <td class="px-6 py-4 text-right">
                     <div class="flex justify-end gap-2">
@@ -447,19 +433,22 @@
             tbody.appendChild(tr);
         });
 
-        // Update Pagination Text
-        document.getElementById('pageNumberDisplay').textContent = `Page ${currentPage} of ${Math.ceil(filteredOrders.length / ITEMS_PER_PAGE) || 1}`;
+        // Update Pagination
+        document.getElementById('pageNumberDisplay').textContent = `Page ${currentPage} of ${Math.max(1, Math.ceil(filteredOrders.length / ITEMS_PER_PAGE))}`;
         document.getElementById('backButton').disabled = currentPage === 1;
         document.getElementById('nextButton').disabled = currentPage * ITEMS_PER_PAGE >= filteredOrders.length;
     }
 
-    // --- STATS (Themed) ---
+    // --- CALCULATE STATS ---
     function calculateStats() {
         const total = allOrdersData.length;
-        const isMissingLink = o => !o.link_primary || o.link_primary.includes('yourdomain') || o.link_primary.trim() === '';
-        const pending = allOrdersData.filter(isMissingLink).length;
+        const pending = allOrdersData.filter(o => !o.link_primary || o.link_primary.includes('yourdomain') || o.link_primary.trim() === '').length;
         const completed = total - pending;
-        const revenue = allOrdersData.reduce((acc, curr) => acc + (parseFloat(curr.payment_option) || 0), 0);
+        
+        const revenue = allOrdersData.reduce((acc, curr) => {
+            const val = parseFloat(curr.payment_option);
+            return acc + (isNaN(val) ? 0 : val);
+        }, 0);
 
         document.getElementById('statTotalOrders').innerText = total;
         document.getElementById('statCompleted').innerText = completed;
@@ -468,9 +457,10 @@
         document.getElementById('statCompletionRate').innerText = total > 0 ? `${Math.round((completed/total)*100)}% Rate` : '0% Rate';
     }
 
-    // --- ACTIONS (Backend Integration) ---
+    // --- MODAL ACTIONS ---
     function openLinkModal(key, l1, l2) {
         currentOrderKey = key;
+        // If l1 is the default dummy link, show empty
         document.getElementById('modalLinkInput').value = l1 && !l1.includes('yourdomain') ? l1 : '';
         document.getElementById('modalLinkInput2').value = l2 || '';
         document.getElementById('linkModal').classList.remove('hidden');
@@ -480,7 +470,7 @@
         document.getElementById(id).classList.add('hidden');
     }
 
-    // Save Link (Connected to Flask /api/v1/update_link/<order_key>)
+    // SAVE LINKS
     document.getElementById('modalSaveButton').addEventListener('click', async () => {
         const btn = document.getElementById('modalSaveButton');
         const l1 = document.getElementById('modalLinkInput').value;
@@ -489,7 +479,6 @@
         btn.innerText = "Placing...";
         
         try {
-            // CALL YOUR FLASK BACKEND API
             const res = await fetch(`${API_BASE_URL}/api/v1/update_link/${currentOrderKey}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -498,9 +487,13 @@
 
             if(res.ok) {
                 showToast("Course Plotted!", "success");
-                // Update local data without re-fetching
+                // Update local data optimistically
                 const order = allOrdersData.find(o => o.order_key === currentOrderKey);
-                if(order) { order.link_primary = l1; order.link_secondary = l2; order.link = l1; }
+                if(order) { 
+                    order.link_primary = l1; 
+                    order.link_secondary = l2; 
+                    order.link = l1; 
+                }
                 renderTable();
                 calculateStats();
                 closeModal('linkModal');
@@ -508,25 +501,25 @@
                 showToast("Failed to save", "error");
             }
         } catch(e) { 
-            console.error("Error saving link:", e);
-            showToast("Error saving (Network issue)", "error"); 
+            console.error(e);
+            showToast("Network issue", "error"); 
         } finally {
             btn.innerText = "Save Course";
         }
     });
 
-    // Send Email (Connected to Flask /api/v1/send_link)
+    // SEND MESSAGE (Updated to use new Backend API)
     async function sendLink(uid, key) {
-        if(!confirm("Send Den Den Mushi message to crew member?")) return;
+        if(!confirm("Send Message to User?")) return;
         const order = allOrdersData.find(o => o.order_key === key);
         
+        // Validation: Must have at least primary link
         if(!order || !order.link_primary || order.link_primary.includes('yourdomain') || order.link_primary.trim() === '') {
-            showToast("Please save a map link first!", "error");
+            showToast("Please save the Esign link first!", "error");
             return;
         }
 
         try {
-            // CALL YOUR FLASK BACKEND API
             const res = await fetch(`${API_BASE_URL}/api/v1/send_link`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -538,39 +531,43 @@
             });
             
             const d = await res.json();
-            showToast(d.message, res.ok ? "success" : "error");
+            if(res.ok) {
+                showToast("Message Sent!", "success");
+            } else {
+                showToast("Telegram Error: " + d.message, "error");
+            }
 
         } catch(e) { 
-            console.error("Error sending link:", e);
-            showToast("Den Den Mushi Network Error", "error"); 
+            console.error(e);
+            showToast("Network Error", "error"); 
         }
     }
 
-    // Delete Order (Connected to Flask /api/v1/delete_order/<order_key>)
+    // DELETE ORDER
     async function deleteOrder(key) {
         if(!confirm("Banish this pirate to the plank permanently?")) return;
         
         try {
-            // CALL YOUR FLASK BACKEND API
             await fetch(`${API_BASE_URL}/api/v1/delete_order/${key}`, { method: 'DELETE' });
             
-            // Update local data
             allOrdersData = allOrdersData.filter(o => o.order_key !== key);
             filteredOrders = filteredOrders.filter(o => o.order_key !== key);
             renderTable();
             calculateStats();
-            showToast("Bounty removed from log", "success");
+            showToast("Bounty removed", "success");
         } catch(e) { 
-            console.error("Error deleting order:", e);
-            showToast("Error deleting (Network issue)", "error"); 
+            console.error(e);
+            showToast("Network issue", "error"); 
         }
     }
 
-    // Filters (Original Logic)
+    // --- FILTERS ---
     function filterByStatus(status) {
+        // Reset Buttons
         document.querySelectorAll('button[id^="btn-"]').forEach(b => {
             b.className = "px-4 py-1.5 rounded-lg text-sm font-medium bg-white/5 text-slate-300 whitespace-nowrap hover:bg-white/10 pirate-font border border-white/10";
         });
+        // Highlight Active
         const activeBtn = document.getElementById(`btn-${status}`);
         activeBtn.className = "px-4 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-[var(--neon-red)] to-red-800 text-white whitespace-nowrap shadow-md pirate-font border border-[var(--neon-red)]";
 
@@ -585,10 +582,13 @@
     function filterTable() {
         const term = document.getElementById('searchBar').value.toLowerCase();
         
+        // 1. Filter by term
         const tempFiltered = allOrdersData.filter(o => 
-            o.username.toLowerCase().includes(term) || o.udid.toLowerCase().includes(term)
+            (o.username && o.username.toLowerCase().includes(term)) || 
+            (o.udid && o.udid.toLowerCase().includes(term))
         );
         
+        // 2. Apply current Status Tab
         const currentStatus = document.querySelector('button[id^="btn-"][class*="bg-gradient-to-r"]').id.replace('btn-', '');
         
         if(currentStatus === 'all') filteredOrders = tempFiltered;
@@ -599,11 +599,10 @@
         renderTable();
     }
 
-    // Pagination
+    // --- PAGINATION & TOAST ---
     document.getElementById('nextButton').addEventListener('click', () => { currentPage++; renderTable(); });
     document.getElementById('backButton').addEventListener('click', () => { currentPage--; renderTable(); });
 
-    // Toast Helper (Themed)
     function showToast(msg, type) {
         const div = document.createElement('div');
         div.className = `fixed bottom-5 right-5 px-6 py-4 rounded-lg shadow-2xl text-white font-bold tracking-wide z-[70] transition-all transform translate-y-10 opacity-0 border ${type === 'error' ? 'bg-red-900/90 border-red-500 shadow-red-500/40' : 'bg-green-900/90 border-green-500 shadow-green-500/40'}`;
@@ -613,8 +612,6 @@
         setTimeout(() => { div.classList.remove('translate-y-10', 'opacity-0'); }, 10);
         setTimeout(() => { div.classList.add('opacity-0', 'translate-y-10'); setTimeout(() => div.remove(), 300); }, 3000);
     }
-
-    // Init
     fetchOrders();
 </script>
 </body>

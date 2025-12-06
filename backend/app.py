@@ -6,18 +6,20 @@ from datetime import datetime
 import logging
 import requests
 from pymongo import MongoClient
-import certifi
+import certifi 
 
 # --- LOGGING ---
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # --- CONFIGURATION ---
+# ⚠️ SECURITY WARNING: In production, use Environment Variables for these!
 BOT_TOKEN = "7159490173:AAGUTo8A5if89zNz0bUbA2HBTuj7rkgvozE"
 MONGO_URI = "mongodb+srv://order_esign_db_user:89k2mXpa4oM1aCj9@cluster0.gtzpgxr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
 # --- MONGODB CONNECTION ---
 try:
+    # certifi is used to verify SSL certificates for MongoDB Atlas
     client = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
     db = client['esign_shop_db']
     orders_collection = db['orders']
@@ -27,7 +29,7 @@ except Exception as e:
     logger.critical(f"❌ MongoDB Failed: {e}")
 
 app = Flask(__name__)
-# Allow all origins for local HTML testing
+# Allow all origins (useful for local HTML testing)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route('/')
@@ -42,9 +44,10 @@ def save_order():
         order_key = str(uuid.uuid4())
         
         user_id = data.get('user_id')
+        # Placeholder link, usually updated later via update_link API
         personalized_link = f"http://yourdomain.com/downloads/{user_id}/{order_key}"
         
-        # Get completion_time from Bot
+        # Get completion_time from Bot if available
         completion_time = data.get('completion_time')
         
         order_data = {
@@ -89,65 +92,60 @@ def update_link(order_key):
 # --- API: Delete Order ---
 @app.route('/api/v1/delete_order/<order_key>', methods=['DELETE'])
 def delete_order(order_key):
-    orders_collection.delete_one({'order_key': order_key})
-    return jsonify({"status": "success"}), 200
+    try:
+        orders_collection.delete_one({'order_key': order_key})
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
-# --- API: Send Link to Telegram User (NEW UI) ---
+# --- API: Send Link to Telegram User (MATCHING SCREENSHOT UI) ---
 @app.route('/api/v1/send_link', methods=['POST'])
 def send_link():
     data = request.json
     user_id = data.get('user_id')
-    link_primary = data.get('link_primary')
-    link_secondary = data.get('link_secondary', '')
+    link_primary = data.get('link_primary')     # Expecting Esign Link
+    link_secondary = data.get('link_secondary', '') # Expecting Certificate Link
 
     if not user_id or not link_primary:
         return jsonify({"message": "Missing Data"}), 400
 
-    # 🎨 NEW UI WITH SOCIAL MEDIA LINKS
-    msg_text = (
-        "🎉 <b>ការបញ្ជាទិញជោគជ័យ | ORDER COMPLETED</b>\n"
-        "──────────────────────\n\n"
-        "🙏 អរគុណសម្រាប់ការគាំទ្រ! ខាងក្រោមនេះគឺជាលីងសម្រាប់ដំឡើងរបស់អ្នក៖\n"
-        "<i>(Thank you for your support! Here are your download links)</i>\n\n"
-        
-        "👇 <b>DOWNLOAD HERE:</b>\n"
-        f"📱 <a href='{link_primary}'><b>Click to Install Esign App</b></a>\n"
-    )
-    
-    if link_secondary:
-        msg_text += f"📂 <a href='{link_secondary}'><b>Click to Download Certificate</b></a>\n"
-    
-    # 👇 UPDATE YOUR LINKS BELOW 👇
+    # 🎨 BUILD THE MESSAGE EXACTLY LIKE THE SCREENSHOT
+    msg_text = "✅ <b>ការទិញរបស់អ្នកបានជេាគជ័យ!</b>\n\n"
+
+    # Part 1: Esign
     msg_text += (
-        "\n──────────────────────\n"
-        "👤 <b>Follow Us & Support:</b>\n"
-        "💬 <a href='https://t.me/irra_11'>Telegram Owner</a>\n"
-        "🌐 <a href='https://www.irra.store'>Website</a>\n"
+        "🔵 <b>Install Esign:</b>\n"
+        f"👉🏿 <a href='{link_primary}'>Click to Download</a>\n\n"
+    )
+
+    # Part 2: Certificate (Only add if link exists)
+    if link_secondary and link_secondary.strip() != "":
+        msg_text += (
+            "🟢 <b>Install Certificate :</b>\n"
+            f"👉🏿 <a href='{link_secondary}'>Click to Download</a>\n\n"
+        )
+
+    # Part 3: Footer
+    msg_text += (
+        "🙏🏿សូមអរគុណ! 🎉\n\n"
+        "🔹ទិញបន្ថែមសូមចុច /start"
     )
 
     try:
-        # 1. Send Message (HTML Mode)
+        # SEND THE MESSAGE
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        
+        # disable_web_page_preview=True makes it look cleaner (like the image)
         resp = requests.post(url, json={
             'chat_id': user_id, 
             'text': msg_text, 
             'parse_mode': 'HTML',
-            'disable_web_page_preview': True
+            'disable_web_page_preview': True 
         })
         
         if resp.status_code != 200:
             print(f"❌ Telegram Error: {resp.text}")
             return jsonify({"message": f"Telegram Error: {resp.text}"}), 400
-
-        # 2. Try Send File (If it is a file)
-        if link_primary.lower().endswith(('.zip', '.ipa', '.pdf', '.mobileprovision')):
-            try:
-                requests.post(
-                    f"https://api.telegram.org/bot{BOT_TOKEN}/sendDocument",
-                    data={'chat_id': user_id, 'document': link_primary}
-                )
-            except:
-                pass 
 
         return jsonify({"status": "success", "message": "Sent successfully!"}), 200
 
