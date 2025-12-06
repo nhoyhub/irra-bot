@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Grand Line Admin - NEON BOUNTY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+        /* Default Font for Text, Cinzel for Headings */
+        * { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        h1, h2, h3, .pirate-font { font-family: 'Cinzel', serif; letter-spacing: 1px; }
+
+        /* THEME VARIABLES - NEON ONE PIECE PALETTE */
+        :root {
+            --neon-red: #ff4d4d; /* Electric Red */
+            --neon-gold: #ffff00; /* Neon Yellow/Gold */
+            --ocean-blue: #0277bd;
+            --dark-bg: #030712; /* Nearly Black */
+            --glow-dark: #0f172a;
+        }
+
+        /* DYNAMIC BACKGROUND */
+        body {
+            background-color: var(--dark-bg);
+            background-image: url("https://wallpaperaccess.com/full/17350.jpg"); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #e2e8f0; /* Default text color set to light */
+        }
+        
+        /* Dark overlay for readability - Stronger gradient */
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(3, 7, 18, 0.95), rgba(3, 7, 18, 0.8));
+            z-index: -1;
+        }
+
+        /* UTILITIES - Mapped from original classes */
+        .glass { /* Original Header/Card/Table BG */
+            background: rgba(30, 30, 40, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 0, 0.2); /* Neon Gold Border */
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+        }
+        
+        .glass-dark { /* Original Sidebar BG */
+            background: rgba(10, 10, 15, 0.98);
+            backdrop-filter: blur(20px);
+            border-right: 2px solid var(--neon-gold);
+            box-shadow: 4px 0 30px rgba(255, 255, 0, 0.2);
+        }
+
+        .accent-gradient { /* Original Profile Image Border */
+            background: linear-gradient(135deg, var(--neon-red), var(--neon-gold)); 
+            box-shadow: 0 0 10px var(--neon-red);
+        }
+        .text-gradient { 
+            background: linear-gradient(135deg, var(--neon-red), var(--neon-gold)); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+
+        /* Neon Glow Text */
+        .text-gold { 
+            background: linear-gradient(to bottom, var(--neon-gold), #ffd700); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            text-shadow: 0px 0px 8px rgba(255, 255, 0, 0.7);
+        }
+        .text-red-glow {
+            text-shadow: 0px 0px 6px var(--neon-red), 0px 0px 3px var(--neon-red);
+        }
+
+        /* CUSTOM SCROLLBAR (Horizontal scroll for table) - Neon Gold */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--glow-dark); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--neon-gold); border-radius: 4px; box-shadow: 0 0 5px var(--neon-gold); }
+
+        /* ANIMATIONS */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* SIDEBAR TRANSITIONS */
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        
+        /* HIDE SCROLLBAR FOR MOBILE MENUS */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden text-slate-200 selection:bg-red-500 selection:text-white">
+
+<!-- MOBILE BACKDROP (Click to close sidebar) -->
+<div id="mobileBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/95 z-40 hidden lg:hidden backdrop-blur-lg"></div>
+
+<!-- MAIN LAYOUT -->
+<div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <!-- Fixed on mobile, Relative on Desktop -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 glass-dark text-white transform -translate-x-full lg:translate-x-0 lg:static lg:inset-auto transition-transform duration-300 flex flex-col h-full shadow-2xl border-r-2 border-[var(--neon-gold)]">
+        
+        <!-- Sidebar Header -->
+        <div class="p-6 text-center border-b border-white/20">
+            <div class="w-20 h-20 mx-auto rounded-full p-1 accent-gradient mb-3">
+                <img src="https://i.pinimg.com/originals/d0/83/66/d08366e9da7ead62a4e626adf96f664f.gif" class="w-full h-full rounded-full object-cover border-4 border-[var(--dark-bg)]">
+            </div>
+            <h2 class="text-lg font-bold text-gold pirate-font text-red-glow">Irra</h2>
+            <div class="flex items-center justify-center gap-2 mt-2">
+                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_#4ade80]"></div>
+                <span class="text-xs text-slate-300 tracking-wider font-bold">Owner</span>
+            </div>
+        </div>
+
+        <!-- Nav Links -->
+        <nav class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+            <!-- Active link: Neon Red -->
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--neon-red)]/20 text-[var(--neon-red)] border-l-4 border-[var(--neon-red)] shadow-lg shadow-red-900/40">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                Wanted Orders
+            </a>
+            <!-- Inactive link: Neon Gold Hover -->
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-[var(--neon-gold)] transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                Crew Members
+            </a>
+        </nav>
+
+        <!-- Logout -->
+        <div class="p-4 border-t border-white/20">
+            <button class="flex items-center gap-3 w-full px-4 py-3 text-red-500 hover:bg-red-500/20 rounded-xl transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                Abandon Ship
+            </button>
+        </div>
+    </aside>
+
+    <!-- CONTENT AREA -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative w-full">
+        
+        <!-- HEADER -->
+        <header class="h-16 glass z-30 flex items-center justify-between px-4 lg:px-8 shadow-sm border-b-2 border-[var(--neon-gold)]/50">
+            <!-- Mobile Menu Button -->
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-white/10 text-slate-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+
+            <h1 class="text-xl font-bold hidden sm:block text-gold pirate-font text-red-glow">Dashboard</h1>
+            
+            <div class="flex items-center gap-4 ml-auto">
+                <button onclick="fetchOrders()" class="p-2 text-slate-300 hover:text-[var(--neon-gold)] transition active:rotate-180 duration-500" title="Refresh Log Pose">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+                <div class="w-8 h-8 rounded-full accent-gradient p-0.5">
+                    <img src="https://i.pinimg.com/1200x/d7/51/67/d75167a9d61835f3a316f6bcd88a8f26.jpg" class="w-full h-full rounded-full object-cover border-2 border-black">
+                </div>
+            </div>
+        </header>
+
+        <!-- SCROLLABLE CONTENT -->
+        <div class="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
+            
+            <!-- STATS CARDS GRID -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+                
+                <!-- Total Orders -->
+                <div class="glass rounded-2xl p-6 shadow-sm border-t-2 border-[var(--neon-red)]/50 fade-in">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-slate-400 uppercase tracking-widest">Total Orders</p>
+                            <h3 id="statTotalOrders" class="text-3xl font-bold text-[var(--neon-red)] mt-2 pirate-font text-red-glow">0</h3>
+                        </div>
+                        <div class="p-2 bg-red-900/40 text-[var(--neon-red)] rounded-lg shadow-lg shadow-red-900/40">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        </div>
+                    </div>
+                    <p class="text-xs text-green-500 mt-2 font-medium">Auto-updated</p>
+                </div>
+
+                <!-- Completed -->
+                <div class="glass rounded-2xl p-6 shadow-sm border-t-2 border-green-500/50 fade-in" style="animation-delay: 0.1s">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-slate-400 uppercase tracking-widest">Captured</p>
+                            <h3 id="statCompleted" class="text-3xl font-bold text-green-400 mt-2 pirate-font text-red-glow">0</h3>
+                        </div>
+                        <div class="p-2 bg-green-900/40 text-green-400 rounded-lg shadow-lg shadow-green-900/40">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                    <p id="statCompletionRate" class="text-xs text-green-500 mt-2 font-medium">100% Rate</p>
+                </div>
+
+                <!-- Pending -->
+                <div class="glass rounded-2xl p-6 shadow-sm border-t-2 border-yellow-500/50 fade-in" style="animation-delay: 0.2s">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-slate-400 uppercase tracking-widest">Wanted</p>
+                            <h3 id="statPending" class="text-3xl font-bold text-yellow-400 mt-2 pirate-font text-red-glow">0</h3>
+                        </div>
+                        <div class="p-2 bg-yellow-900/40 text-yellow-400 rounded-lg shadow-lg shadow-yellow-900/40">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                    <p class="text-xs text-amber-500 mt-2 font-medium">Requires Attention</p>
+                </div>
+
+                <!-- Revenue -->
+                <div class="glass rounded-2xl p-6 shadow-sm border-t-2 border-[var(--neon-gold)]/50 fade-in" style="animation-delay: 0.3s">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-[var(--neon-gold)] uppercase tracking-widest">Treasury</p>
+                            <h3 id="statRevenue" class="text-3xl font-bold text-gold mt-2 pirate-font text-red-glow">$0.00</h3>
+                        </div>
+                        <div class="p-2 bg-blue-900/40 text-blue-400 rounded-lg shadow-lg shadow-blue-900/40">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                    <p class="text-xs text-blue-500 mt-2 font-medium">Belly Collected</p>
+                </div>
+            </div>
+
+            <!-- TABLE SECTION -->
+            <div class="glass rounded-2xl shadow-sm border-2 border-white/10 overflow-hidden fade-in">
+                
+                <!-- Table Header & Search -->
+                <div class="p-5 border-b border-white/10 flex flex-col md:flex-row gap-4 justify-between items-center bg-white/5">
+                    <h3 class="font-bold text-lg text-white pirate-font">Recent Orders</h3>
+                    
+                    <div class="relative w-full md:w-64">
+                        <input type="text" id="searchBar" onkeyup="filterTable()" placeholder="Search pirates..." 
+                               class="w-full pl-10 pr-4 py-2 rounded-xl bg-black/50 border border-white/20 focus:outline-none focus:ring-2 focus:ring-[var(--neon-gold)] text-white placeholder-slate-500 transition shadow-inner shadow-black/50">
+                        <svg class="w-4 h-4 text-slate-500 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+                
+                <!-- FILTER TABS -->
+                <div class="flex overflow-x-auto gap-2 p-4 pb-2 border-b border-white/10 custom-scrollbar">
+                    <button onclick="filterByStatus('all')" id="btn-all" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-[var(--neon-red)] to-red-800 text-white whitespace-nowrap pirate-font border border-[var(--neon-red)]">All Orders</button>
+                    <button onclick="filterByStatus('pending')" id="btn-pending" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-white/5 text-slate-300 whitespace-nowrap hover:bg-white/10 pirate-font border border-white/10">Pending</button>
+                    <button onclick="filterByStatus('completed')" id="btn-completed" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-white/5 text-slate-300 whitespace-nowrap hover:bg-white/10 pirate-font border border-white/10">Completed</button>
+                </div>
+
+                <!-- RESPONSIVE TABLE WRAPPER -->
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full min-w-[800px] text-left border-collapse">
+                        <thead>
+                            <tr class="bg-black/50 text-slate-400 text-xs uppercase tracking-widest border-b border-white/10 font-bold">
+                                <th class="px-6 py-4 font-semibold">User</th>
+                                <th class="px-6 py-4 font-semibold">UDID</th>
+                                <th class="px-6 py-4 font-semibold">Price</th>
+                                <th class="px-6 py-4 font-semibold">Status</th>
+                                <th class="px-6 py-4 font-semibold">Link</th>
+                                <th class="px-6 py-4 font-semibold text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderTableBody" class="divide-y divide-white/10 text-sm text-slate-300">
+                            <!-- JS Injects Rows Here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- LOADING SPINNER -->
+                <div id="loadingSpinner" class="hidden p-8 text-center">
+                    <div class="w-8 h-8 border-4 border-[var(--neon-gold)] border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_15px_#ffff00]"></div>
+                    <p class="text-gold mt-2 text-sm pirate-font text-red-glow">SETTING SAIL...</p>
+                </div>
+
+                <!-- PAGINATION -->
+                <div class="p-4 border-t border-white/10 flex justify-between items-center bg-black/40">
+                    <button id="backButton" class="px-3 py-1 bg-white/5 border border-white/20 rounded-lg text-sm hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition hover:text-white">Prev</button>
+                    <span id="pageNumberDisplay" class="text-xs font-bold text-[var(--neon-gold)] tracking-wider">Page 1</span>
+                    <button id="nextButton" class="px-3 py-1 bg-white/5 border border-white/20 rounded-lg text-sm hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition hover:text-white">Next</button>
+                </div>
+            </div>
+
+            <div class="h-20"></div> <!-- Spacer for mobile scroll -->
+        </div>
+    </main>
+</div>
+
+<!-- MODAL: LINK INPUT -->
+<div id="linkModal" class="fixed inset-0 z-[60] flex items-center justify-center hidden bg-black/95 backdrop-blur-xl p-4">
+    <div class="glass-dark rounded-2xl shadow-2xl w-full max-w-lg w-[95%] overflow-hidden transform transition-all border-2 border-[var(--neon-gold)]/50">
+        <div class="p-6 border-b border-white/10 flex justify-between items-center bg-red-900/30">
+            <h3 class="text-lg font-bold text-gold pirate-font text-red-glow">UPDATE LOG POSE</h3>
+            <button onclick="closeModal('linkModal')" class="text-slate-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-[var(--neon-gold)] mb-1 text-red-glow">Primary Coordinates</label>
+                <input type="url" id="modalLinkInput" class="w-full p-3 bg-black/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-[var(--neon-gold)] outline-none text-sm text-white placeholder-slate-600" placeholder="https://...">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1">Secondary Route (Optional)</label>
+                <input type="url" id="modalLinkInput2" class="w-full p-3 bg-black/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-[var(--neon-gold)] outline-none text-sm text-white placeholder-slate-600" placeholder="https://...">
+            </div>
+        </div>
+        <div class="p-6 bg-black/40 flex justify-end gap-3 border-t border-white/10">
+            <button onclick="closeModal('linkModal')" class="px-4 py-2 text-slate-400 font-medium hover:bg-white/10 rounded-lg transition hover:text-white">Retreat</button>
+            <button id="modalSaveButton" class="px-6 py-2 bg-gradient-to-r from-[var(--neon-red)] to-red-800 text-white font-medium rounded-lg hover:bg-red-700 shadow-lg shadow-red-500/50 transition pirate-font border border-[var(--neon-red)]">Save Course</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: DETAILS -->
+<div id="detailsModal" class="fixed inset-0 z-[60] flex items-center justify-center hidden bg-black/95 backdrop-blur-xl p-4">
+    <div class="glass rounded-2xl shadow-2xl w-full max-w-lg w-[95%] overflow-hidden border-2 border-white/10">
+        <div class="p-6 border-b border-white/10 bg-white/5">
+            <h3 class="text-lg font-bold text-white pirate-font">Order Details</h3>
+        </div>
+        <div id="detailsContent" class="p-6 text-sm text-slate-400 space-y-2 break-words">
+            <!-- Content injected via JS -->
+        </div>
+        <div class="p-6 bg-black/40 text-right border-t border-white/10">
+            <button onclick="closeModal('detailsModal')" class="px-4 py-2 bg-white/10 text-white rounded-lg font-medium hover:bg-white/20">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- JAVASCRIPT LOGIC -->
+<script>
+    const API_BASE_URL = 'https://irra-bot.onrender.com'; // Set this to your local or deployed Flask backend URL
+    
+    // --- MOBILE SIDEBAR TOGGLE (Original Logic) ---
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('mobileBackdrop');
+        const isClosed = sidebar.classList.contains('-translate-x-full');
+        
+        if (isClosed) {
+            sidebar.classList.remove('-translate-x-full');
+            backdrop.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        } else {
+            sidebar.classList.add('-translate-x-full');
+            backdrop.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    // --- DATA VARIABLES ---
+    let allOrdersData = [];
+    let filteredOrders = [];
+    let currentPage = 1;
+    const ITEMS_PER_PAGE = 10;
+    let currentOrderKey = null;
+
+    // --- FETCH DATA (Connected to Backend) ---
+    async function fetchOrders() {
+        const spinner = document.getElementById('loadingSpinner');
+        const tbody = document.getElementById('orderTableBody');
+        
+        spinner.classList.remove('hidden');
+        tbody.innerHTML = '';
+        
+        try {
+            // CALL YOUR FLASK BACKEND API
+            const response = await fetch(`${API_BASE_URL}/admin/orders`);
+            const data = await response.json();
+            
+            // Convert data from object to array and sort by save_time (newest first)
+            allOrdersData = Object.values(data).sort((a, b) => new Date(b.save_time) - new Date(a.save_time));
+            filteredOrders = allOrdersData;
+            
+            calculateStats();
+            renderTable();
+            showToast("LOG POSE UPDATED!", "success");
+        } catch (error) {
+            console.error("Error connecting to backend:", error);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-400 pirate-font">Error! The Log Pose is broken. Check your Flask server.</td></tr>`;
+            showToast("Connection failed", "error");
+        } finally {
+            spinner.classList.add('hidden');
+        }
+    }
+
+    // --- RENDER TABLE (Fixed for Full UDID Display) ---
+    function renderTable() {
+        const tbody = document.getElementById('orderTableBody');
+        tbody.innerHTML = '';
+        
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const pageData = filteredOrders.slice(start, end);
+
+        if(pageData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-500 pirate-font">NO PIRATES FOUND ON RADAR</td></tr>`;
+            return;
+        }
+
+        pageData.forEach(order => {
+            const isLinkPending = !order.link_primary || order.link_primary.includes('yourdomain.com') || order.link_primary.trim() === '';
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-black/5 transition'; 
+            
+            tr.innerHTML = `
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-slate-800 border-2 border-yellow-500/50 flex items-center justify-center font-bold text-yellow-500 text-xs shadow-inner shadow-yellow-500/20">
+                            ${order.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <p class="font-bold text-white text-sm tracking-wide">${order.username}</p>
+                            <p class="text-xs text-slate-500 font-mono">ID: ${order.user_id}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <!-- FIXED: Display Full UDID -->
+                    <code class="bg-black/40 px-2 py-1 rounded text-xs text-slate-400 border border-white/20 font-mono tracking-normal break-all">${order.udid}</code>
+                </td>
+                <td class="px-6 py-4 font-bold text-yellow-400 font-mono">$${parseFloat(order.payment_option).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                <td class="px-6 py-4">
+                    <span class="px-2 py-1 rounded-full text-xs font-bold uppercase ${isLinkPending ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30' : 'bg-green-500/10 text-green-400 border border-green-500/30'}">
+                        ${isLinkPending ? 'WANTED' : 'CAPTURED'}
+                    </span>
+                </td>
+                <td class="px-6 py-4">
+                     <span class="text-xs font-bold ${isLinkPending ? 'text-red-400' : 'text-blue-400'}">
+                        ${isLinkPending ? 'Missing' : 'Active'}
+                     </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <div class="flex justify-end gap-2">
+                        <button onclick="openLinkModal('${order.order_key}', '${order.link_primary || order.link || ''}', '${order.link_secondary || ''}')" 
+                            class="p-2 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/30 transition hover:shadow-lg hover:shadow-blue-500/20" title="Edit Map">
+                            ✏️
+                        </button>
+                        <button onclick="sendLink('${order.user_id}', '${order.order_key}')" 
+                            class="p-2 rounded bg-green-500/10 text-green-400 hover:bg-green-500/30 transition hover:shadow-lg hover:shadow-green-500/20" title="Send Den Den Mushi">
+                            📧
+                        </button>
+                         <button onclick="deleteOrder('${order.order_key}')" 
+                            class="p-2 rounded bg-red-500/10 text-red-400 hover:bg-red-500/30 transition hover:shadow-lg hover:shadow-red-500/20" title="Walking the Plank">
+                            🗑️
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Update Pagination Text
+        document.getElementById('pageNumberDisplay').textContent = `Page ${currentPage} of ${Math.ceil(filteredOrders.length / ITEMS_PER_PAGE) || 1}`;
+        document.getElementById('backButton').disabled = currentPage === 1;
+        document.getElementById('nextButton').disabled = currentPage * ITEMS_PER_PAGE >= filteredOrders.length;
+    }
+
+    // --- STATS (Themed) ---
+    function calculateStats() {
+        const total = allOrdersData.length;
+        const isMissingLink = o => !o.link_primary || o.link_primary.includes('yourdomain') || o.link_primary.trim() === '';
+        const pending = allOrdersData.filter(isMissingLink).length;
+        const completed = total - pending;
+        const revenue = allOrdersData.reduce((acc, curr) => acc + (parseFloat(curr.payment_option) || 0), 0);
+
+        document.getElementById('statTotalOrders').innerText = total;
+        document.getElementById('statCompleted').innerText = completed;
+        document.getElementById('statPending').innerText = pending;
+        document.getElementById('statRevenue').innerText = `$${revenue.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+        document.getElementById('statCompletionRate').innerText = total > 0 ? `${Math.round((completed/total)*100)}% Rate` : '0% Rate';
+    }
+
+    // --- ACTIONS (Backend Integration) ---
+    function openLinkModal(key, l1, l2) {
+        currentOrderKey = key;
+        document.getElementById('modalLinkInput').value = l1 && !l1.includes('yourdomain') ? l1 : '';
+        document.getElementById('modalLinkInput2').value = l2 || '';
+        document.getElementById('linkModal').classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+    }
+
+    // Save Link (Connected to Flask /api/v1/update_link/<order_key>)
+    document.getElementById('modalSaveButton').addEventListener('click', async () => {
+        const btn = document.getElementById('modalSaveButton');
+        const l1 = document.getElementById('modalLinkInput').value;
+        const l2 = document.getElementById('modalLinkInput2').value;
+
+        btn.innerText = "Placing...";
+        
+        try {
+            // CALL YOUR FLASK BACKEND API
+            const res = await fetch(`${API_BASE_URL}/api/v1/update_link/${currentOrderKey}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ link1: l1, link2: l2 })
+            });
+
+            if(res.ok) {
+                showToast("Course Plotted!", "success");
+                // Update local data without re-fetching
+                const order = allOrdersData.find(o => o.order_key === currentOrderKey);
+                if(order) { order.link_primary = l1; order.link_secondary = l2; order.link = l1; }
+                renderTable();
+                calculateStats();
+                closeModal('linkModal');
+            } else {
+                showToast("Failed to save", "error");
+            }
+        } catch(e) { 
+            console.error("Error saving link:", e);
+            showToast("Error saving (Network issue)", "error"); 
+        } finally {
+            btn.innerText = "Save Course";
+        }
+    });
+
+    // Send Email (Connected to Flask /api/v1/send_link)
+    async function sendLink(uid, key) {
+        if(!confirm("Send Den Den Mushi message to crew member?")) return;
+        const order = allOrdersData.find(o => o.order_key === key);
+        
+        if(!order || !order.link_primary || order.link_primary.includes('yourdomain') || order.link_primary.trim() === '') {
+            showToast("Please save a map link first!", "error");
+            return;
+        }
+
+        try {
+            // CALL YOUR FLASK BACKEND API
+            const res = await fetch(`${API_BASE_URL}/api/v1/send_link`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    user_id: uid, 
+                    link_primary: order.link_primary, 
+                    link_secondary: order.link_secondary 
+                })
+            });
+            
+            const d = await res.json();
+            showToast(d.message, res.ok ? "success" : "error");
+
+        } catch(e) { 
+            console.error("Error sending link:", e);
+            showToast("Den Den Mushi Network Error", "error"); 
+        }
+    }
+
+    // Delete Order (Connected to Flask /api/v1/delete_order/<order_key>)
+    async function deleteOrder(key) {
+        if(!confirm("Banish this pirate to the plank permanently?")) return;
+        
+        try {
+            // CALL YOUR FLASK BACKEND API
+            await fetch(`${API_BASE_URL}/api/v1/delete_order/${key}`, { method: 'DELETE' });
+            
+            // Update local data
+            allOrdersData = allOrdersData.filter(o => o.order_key !== key);
+            filteredOrders = filteredOrders.filter(o => o.order_key !== key);
+            renderTable();
+            calculateStats();
+            showToast("Bounty removed from log", "success");
+        } catch(e) { 
+            console.error("Error deleting order:", e);
+            showToast("Error deleting (Network issue)", "error"); 
+        }
+    }
+
+    // Filters (Original Logic)
+    function filterByStatus(status) {
+        document.querySelectorAll('button[id^="btn-"]').forEach(b => {
+            b.className = "px-4 py-1.5 rounded-lg text-sm font-medium bg-white/5 text-slate-300 whitespace-nowrap hover:bg-white/10 pirate-font border border-white/10";
+        });
+        const activeBtn = document.getElementById(`btn-${status}`);
+        activeBtn.className = "px-4 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-[var(--neon-red)] to-red-800 text-white whitespace-nowrap shadow-md pirate-font border border-[var(--neon-red)]";
+
+        if(status === 'all') filteredOrders = allOrdersData;
+        else if(status === 'pending') filteredOrders = allOrdersData.filter(o => !o.link_primary || o.link_primary.includes('yourdomain'));
+        else filteredOrders = allOrdersData.filter(o => o.link_primary && !o.link_primary.includes('yourdomain'));
+        
+        currentPage = 1;
+        renderTable();
+    }
+
+    function filterTable() {
+        const term = document.getElementById('searchBar').value.toLowerCase();
+        
+        const tempFiltered = allOrdersData.filter(o => 
+            o.username.toLowerCase().includes(term) || o.udid.toLowerCase().includes(term)
+        );
+        
+        const currentStatus = document.querySelector('button[id^="btn-"][class*="bg-gradient-to-r"]').id.replace('btn-', '');
+        
+        if(currentStatus === 'all') filteredOrders = tempFiltered;
+        else if(currentStatus === 'pending') filteredOrders = tempFiltered.filter(o => !o.link_primary || o.link_primary.includes('yourdomain'));
+        else filteredOrders = tempFiltered.filter(o => o.link_primary && !o.link_primary.includes('yourdomain'));
+        
+        currentPage = 1;
+        renderTable();
+    }
+
+    // Pagination
+    document.getElementById('nextButton').addEventListener('click', () => { currentPage++; renderTable(); });
+    document.getElementById('backButton').addEventListener('click', () => { currentPage--; renderTable(); });
+
+    // Toast Helper (Themed)
+    function showToast(msg, type) {
+        const div = document.createElement('div');
+        div.className = `fixed bottom-5 right-5 px-6 py-4 rounded-lg shadow-2xl text-white font-bold tracking-wide z-[70] transition-all transform translate-y-10 opacity-0 border ${type === 'error' ? 'bg-red-900/90 border-red-500 shadow-red-500/40' : 'bg-green-900/90 border-green-500 shadow-green-500/40'}`;
+        div.innerHTML = `<span class="mr-2 text-xl">${type === 'error' ? '☠️' : '🏴‍☠️'}</span> <span class="pirate-font">${msg}</span>`;
+        document.body.appendChild(div);
+        
+        setTimeout(() => { div.classList.remove('translate-y-10', 'opacity-0'); }, 10);
+        setTimeout(() => { div.classList.add('opacity-0', 'translate-y-10'); setTimeout(() => div.remove(), 300); }, 3000);
+    }
+
+    // Init
+    fetchOrders();
+</script>
+</body>
+</html>
