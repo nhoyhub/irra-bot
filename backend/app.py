@@ -98,7 +98,7 @@ def delete_order(order_key):
     except Exception as e:
         return jsonify({"message": str(e)}), 500
 
-# --- API: Send Link to Telegram User (MATCHING SCREENSHOT UI) ---
+# --- API: Send Link to Telegram User (UPDATED UI) ---
 @app.route('/api/v1/send_link', methods=['POST'])
 def send_link():
     data = request.json
@@ -109,33 +109,32 @@ def send_link():
     if not user_id or not link_primary:
         return jsonify({"message": "Missing Data"}), 400
 
-    # 🎨 BUILD THE MESSAGE EXACTLY LIKE THE SCREENSHOT
-    msg_text = "✅ <b>ការទិញរបស់អ្នកបានជេាគជ័យ!</b>\n\n"
-
-    # Part 1: Esign
-    msg_text += (
-        "🔵 <b>Install Esign:</b>\n"
-        f"👉🏿 <a href='{link_primary}'>Click to Download</a>\n\n"
+    # 🎨 BUILD THE MESSAGE EXACTLY AS REQUESTED
+    msg_text = (
+        "<b>🎉 ការបញ្ជាទិញជោគជ័យ | ORDER COMPLETED</b>\n"
+        "──────────────────\n\n"
+        "🙏 អរគុណសម្រាប់ការគាំទ្រ! ខាងក្រោមនេះគឺជាលីងសម្រាប់ដំឡើងរបស់អ្នក៖\n"
+        "(Thank you for your support! Here are your download links)\n\n"
+        "👇 <b>DOWNLOAD HERE:</b>\n"
+        f"🔵 <a href='{link_primary}'>Click to Install Esign App</a>\n"
     )
 
-    # Part 2: Certificate (Only add if link exists)
+    # Only add the second link if it exists and is not empty
     if link_secondary and link_secondary.strip() != "":
-        msg_text += (
-            "🟢 <b>Install Certificate :</b>\n"
-            f"👉🏿 <a href='{link_secondary}'>Click to Download</a>\n\n"
-        )
+        msg_text += f"🟢 <a href='{link_secondary}'>Click to Download Certificate</a>\n"
 
-    # Part 3: Footer
+    # 👇 ADDED THE TUTORIAL LINK HERE 👇
     msg_text += (
-        "🙏🏿សូមអរគុណ! 🎉\n\n"
-        "🔹ទិញបន្ថែមសូមចុច /start"
+        "\n─────────────────\n"
+        # "🎬 <a href='https://t.me/Irra_Esign/60'>របៀប​ Install Esign</a>\n"
+        "📍ទិញបន្ថែមសូមចុច /start"
     )
 
     try:
         # SEND THE MESSAGE
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
         
-        # disable_web_page_preview=True makes it look cleaner (like the image)
+        # disable_web_page_preview=True makes the horizontal lines look better
         resp = requests.post(url, json={
             'chat_id': user_id, 
             'text': msg_text, 
